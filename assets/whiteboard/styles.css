@@ -1,0 +1,170 @@
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: sans-serif;
+  background: #f0f0f0;
+  height: 100vh;
+  overflow: hidden;
+}
+
+#app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+#toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 12px;
+  background: #2b2b2b;
+  border-bottom: 2px solid #111;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+
+.tool-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 6px;
+  border-right: 1px solid #555;
+}
+
+.tool-group:last-child {
+  border-right: none;
+}
+
+.tool-btn {
+  width: 36px;
+  height: 36px;
+  border: 2px solid #555;
+  border-radius: 4px;
+  background: #3c3c3c;
+  color: #ddd;
+  font-size: 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.tool-btn:hover {
+  background: #4f4f4f;
+  border-color: #888;
+}
+
+.tool-btn.active {
+  background: #1a73e8;
+  border-color: #1a73e8;
+  color: #fff;
+}
+
+.color-label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: #ccc;
+  font-size: 12px;
+}
+
+input[type="color"] {
+  width: 28px;
+  height: 28px;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  background: none;
+}
+
+input[type="range"] {
+  width: 70px;
+  cursor: pointer;
+}
+
+input[type="checkbox"] {
+  cursor: pointer;
+}
+
+#actions button {
+  padding: 6px 12px;
+  border: 2px solid #555;
+  border-radius: 4px;
+  background: #3c3c3c;
+  color: #ddd;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+#actions button:hover {
+  background: #555;
+}
+
+#btn-delete:hover {
+  background: #c0392b;
+  border-color: #c0392b;
+}
+
+#canvas-container {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+}
+
+#canvas {
+  width: 100%;
+  height: 100%;
+  background: #fff;
+  display: block;
+  cursor: crosshair;
+}
+
+#canvas.tool-select {
+  cursor: default;
+}
+
+#canvas.tool-text {
+  cursor: text;
+}
+
+/* Selection handles */
+.selection-box {
+  fill: none;
+  stroke: #1a73e8;
+  stroke-width: 1;
+  stroke-dasharray: 4 3;
+  pointer-events: none;
+}
+
+.resize-handle {
+  fill: #fff;
+  stroke: #1a73e8;
+  stroke-width: 1.5;
+  cursor: pointer;
+}
+
+.resize-handle[data-handle="nw"], .resize-handle[data-handle="se"] { cursor: nwse-resize; }
+.resize-handle[data-handle="ne"], .resize-handle[data-handle="sw"] { cursor: nesw-resize; }
+.resize-handle[data-handle="n"],  .resize-handle[data-handle="s"]  { cursor: ns-resize; }
+.resize-handle[data-handle="e"],  .resize-handle[data-handle="w"]  { cursor: ew-resize; }
+
+/* Text foreignObject */
+.text-fo div {
+  outline: none;
+  min-width: 20px;
+  min-height: 20px;
+  white-space: pre;
+}
+
+/* Ghost preview while drawing */
+.drawing-preview {
+  pointer-events: none;
+  opacity: 0.7;
+}

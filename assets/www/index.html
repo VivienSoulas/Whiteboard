@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Webserv - Port 8080</title>
+	<style>
+		body {
+			font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+			line-height: 1.6;
+			color: #333;
+			max-width: 800px;
+			margin: 0 auto;
+			padding: 2rem;
+		}
+
+		h1,
+		h2,
+		h3 {
+			color: #2c3e50;
+		}
+
+		.card {
+			border: 1px solid #ddd;
+			border-radius: 8px;
+			padding: 1.5rem;
+			margin-bottom: 2rem;
+			box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+		}
+
+		.btn {
+			display: inline-block;
+			background: #3498db;
+			color: white;
+			padding: 0.5rem 1rem;
+			text-decoration: none;
+			border-radius: 4px;
+			margin-right: 0.5rem;
+			margin-bottom: 0.5rem;
+			font-weight: bold;
+			border: none;
+			font-size: 1rem;
+			cursor: pointer;
+		}
+
+		.btn:hover {
+			background: #2980b9;
+		}
+
+		.btn-alt {
+			background: #2ecc71;
+		}
+
+		.btn-alt:hover {
+			background: #27ae60;
+		}
+
+		.btn-danger {
+			background: #e74c3c;
+		}
+
+		.btn-danger:hover {
+			background: #c0392b;
+		}
+
+		code {
+			background: #f4f4f4;
+			padding: 0.2rem 0.4rem;
+			border-radius: 4px;
+			color: #e83e8c;
+		}
+	</style>
+</head>
+
+<body>
+	<h1>🚀 Webserv Control Panel (Port 8080)</h1>
+	<p>Welcome to the Primary Server instance! This server listens on port 8080. Explore the features below.</p>
+
+	<div class="card">
+		<h2>📂 Directory Listing & Static Files</h2>
+		<p>This path has auto-indexing explicitly enabled via <code>directory_listing on;</code>.</p>
+		<a href="/files/" class="btn">View Directory Listing</a>
+	</div>
+
+	<div class="card">
+		<h2>📤 File Uploads</h2>
+		<p>This route accepts <code>POST</code> and saves files securely mapping to <code>./assets/uploads</code>.</p>
+		<div style="margin-top: 15px; border-top: 1px dashed #ddd; padding-top: 15px;">
+			<form action="/upload" method="POST" enctype="multipart/form-data">
+				<input type="file" name="file" required style="margin-bottom: 10px;">
+				<input type="submit" value="Upload File" class="btn" style="background-color: #3498db;">
+			</form>
+		</div>
+		<div style="margin-top: 15px; border-top: 1px dashed #ddd; padding-top: 15px;">
+			<p>Delete an existing upload:</p>
+			<input type="text" id="delete-name" placeholder="File name (e.g. image.jpg)"
+				style="padding: 0.5rem; border-radius: 4px; border: 1px solid #ddd; margin-bottom: 10px; width: 250px;">
+			<button onclick="handleDelete()" class="btn btn-danger" style="margin-bottom: 0;">Delete File</button>
+			<div id="delete-status" style="margin-top: 10px; font-weight: bold;"></div>
+		</div>
+		<script>
+			function handleDelete() {
+				const name = document.getElementById('delete-name').value.trim();
+				const status = document.getElementById('delete-status');
+				if (!name) {
+					status.innerText = "Please enter a file name.";
+					status.style.color = "#e67e22";
+					return;
+				}
+				fetch('/upload/' + name, { method: 'DELETE' })
+					.then(response => {
+						if (response.status === 204) {
+							status.innerText = "✅ File deleted successfully!";
+							status.style.color = "#27ae60";
+						} else if (response.status === 404) {
+							status.innerText = "⚠️ File not found.";
+							status.style.color = "#f39c12";
+						} else {
+							status.innerText = "❌ Failed to delete (Error " + response.status + ")";
+							status.style.color = "#e74c3c";
+						}
+					})
+					.catch(err => {
+						status.innerText = "Network Error!";
+						status.style.color = "#e74c3c";
+					});
+			}
+		</script>
+	</div>
+
+	<div class="card">
+		<h2>⚙️ PHP CGI Execution</h2>
+		<p>Executes PHP scripts automatically utilizing the strict <code>fork()</code> and <code>execve()</code>
+			mapping.</p>
+		<a href="/cgi-bin/hello.php" class="btn btn-alt">Test PHP Script</a>
+		<a href="/cgi-bin/" class="btn">Browse CGI Bin</a>
+	</div>
+
+	<div class="card">
+		<h2>🔗 Routing & Redirects</h2>
+		<p>Try accessing the <code>/old</code> route, which is configured to explicitly drop a
+			<code>301 Moved Permanently</code> back here.
+		</p>
+		<a href="/old" class="btn">Try 301 Redirect</a>
+	</div>
+
+	<div class="card">
+		<h2>🎨 Whiteboard</h2>
+		<p>Interactive SVG whiteboard — draw rectangles, ellipses, lines, arrows, freehand paths and text. Select, move, resize and delete shapes.</p>
+		<a href="/whiteboard/" class="btn btn-alt">Open Whiteboard</a>
+	</div>
+
+	<div class="card" style="background-color: #f8f9fa;">
+		<h2>🌐 Switch to Server 2 (Port 8081)</h2>
+		<p>Switch over to the second virtual server running simultaneously on port 8081 demonstrating HTTP DELETE and
+			Python CGI support.</p>
+		<a href="http://localhost:8081" class="btn btn-danger">Go to Port 8081 »</a>
+	</div>
+</body>
+
+</html>

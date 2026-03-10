@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Webserv - Port 8081</title>
+	<style>
+		body {
+			font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+			line-height: 1.6;
+			color: #333;
+			max-width: 800px;
+			margin: 0 auto;
+			padding: 2rem;
+		}
+
+		h1,
+		h2,
+		h3 {
+			color: #8e44ad;
+		}
+
+		.card {
+			border: 1px solid #ddd;
+			border-radius: 8px;
+			padding: 1.5rem;
+			margin-bottom: 2rem;
+			box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+		}
+
+		.btn {
+			display: inline-block;
+			background: #8e44ad;
+			color: white;
+			padding: 0.5rem 1rem;
+			text-decoration: none;
+			border-radius: 4px;
+			margin-right: 0.5rem;
+			margin-bottom: 0.5rem;
+			font-weight: bold;
+			cursor: pointer;
+			border: none;
+			font-size: 1rem;
+		}
+
+		.btn:hover {
+			background: #732d91;
+		}
+
+		.btn-alt {
+			background: #f39c12;
+		}
+
+		.btn-alt:hover {
+			background: #d68910;
+		}
+
+		code {
+			background: #f4f4f4;
+			padding: 0.2rem 0.4rem;
+			border-radius: 4px;
+			color: #e83e8c;
+		}
+
+		#delete-result {
+			margin-top: 10px;
+			font-weight: bold;
+			color: #e74c3c;
+		}
+	</style>
+</head>
+
+<body>
+	<h1>🌟 Webserv Example Panel (Port 8081)</h1>
+	<p>Welcome to the Alternative Server instance! This is mapped to host `example.local` or `localhost:8081`.</p>
+
+	<div class="card">
+		<h2>🐍 Python CGI Execution</h2>
+		<p>This virtual block intercepts the <code>.py</code> extension to fork and exec the Python interpreter
+			correctly with all chunk parameters maintained.</p>
+		<a href="/cgi-bin/hello.py" class="btn btn-alt">Test Python Script</a>
+	</div>
+
+	<div class="card">
+		<h2>🗑️ HTTP DELETE Action</h2>
+		<p>Click below to issue an HTTP <code>DELETE</code> command via an asynchronous Javascript Fetch against a mock
+			target file on this server root. </p>
+		<p><em>Note: If you already deleted it or permissions don't allow it, it will return a 404/403 properly.</em>
+		</p>
+		<button class="btn" onclick="deleteTarget()">Delete 'target_file.txt'</button>
+		<div id="delete-result"></div>
+		<script>
+			function deleteTarget() {
+				fetch('/target_file.txt', { method: 'DELETE' })
+					.then(response => {
+						if (response.status === 204) {
+							document.getElementById('delete-result').innerText = "✅ Success: 204 No Content. File was deleted!";
+							document.getElementById('delete-result').style.color = "#27ae60";
+						} else if (response.status === 404) {
+							document.getElementById('delete-result').innerText = "⚠️ 404 Not Found: target_file.txt isn't there.";
+							document.getElementById('delete-result').style.color = "#f39c12";
+						} else if (response.status === 403) {
+							document.getElementById('delete-result').innerText = "⛔ 403 Forbidden: You don't have permission to delete this.";
+							document.getElementById('delete-result').style.color = "#e74c3c";
+						} else {
+							document.getElementById('delete-result').innerText = `❌ Error: Received status code ${response.status}`;
+							document.getElementById('delete-result').style.color = "#e74c3c";
+						}
+					})
+					.catch(err => {
+						document.getElementById('delete-result').innerText = "Network Error!";
+					});
+			}
+		</script>
+		<div style="margin-top: 15px; border-top: 1px dashed #ddd; padding-top: 15px;">
+			<p>Need to bring the target file back? Click below to instantly recreate a dummy
+				<code>target_file.txt</code>.
+			</p>
+			<button class="btn" onclick="recreateTarget()" style="background-color: #27ae60;">Recreate
+				'target_file.txt'</button>
+		</div>
+		<script>
+			function recreateTarget() {
+				const formData = new FormData();
+				const blob = new Blob(["dummy content"], { type: "text/plain" });
+				formData.append("file", blob, "target_file.txt");
+
+				fetch('/', { method: 'POST', body: formData })
+					.then(response => {
+						if (response.ok || response.status === 201) {
+							document.getElementById('delete-result').innerText = "✅ target_file.txt has been recreated!";
+							document.getElementById('delete-result').style.color = "#27ae60";
+						} else {
+							document.getElementById('delete-result').innerText = "❌ Failed to recreate file.";
+							document.getElementById('delete-result').style.color = "#e74c3c";
+						}
+					})
+					.catch(err => {
+						document.getElementById('delete-result').innerText = "Network Error!";
+					});
+			}
+		</script>
+	</div>
+
+	<div class="card" style="background-color: #f8f9fa;">
+		<h2>🌐 Switch back to Server 1 (Port 8080)</h2>
+		<p>Go back to the main control panel mapping.</p>
+		<a href="http://localhost:8080" class="btn" style="background: #3498db;">« Back to Port 8080</a>
+	</div>
+</body>
+
+</html>

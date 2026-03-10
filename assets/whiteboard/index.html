@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Whiteboard</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="app">
+    <div id="toolbar">
+      <div class="tool-group" id="tools">
+        <button class="tool-btn active" data-tool="select" title="Select (S)">&#9654;</button>
+        <button class="tool-btn" data-tool="rectangle" title="Rectangle (R)">&#9645;</button>
+        <button class="tool-btn" data-tool="ellipse" title="Ellipse (E)">&#9675;</button>
+        <button class="tool-btn" data-tool="line" title="Line (L)">&#9135;</button>
+        <button class="tool-btn" data-tool="arrow" title="Arrow (A)">&#10132;</button>
+        <button class="tool-btn" data-tool="pen" title="Pen (P)">&#9998;</button>
+        <button class="tool-btn" data-tool="text" title="Text (T)">T</button>
+      </div>
+      <div class="tool-group" id="colors">
+        <label class="color-label">
+          <span>Stroke</span>
+          <input type="color" id="stroke-color" value="#000000">
+        </label>
+        <label class="color-label">
+          <span>Fill</span>
+          <input type="color" id="fill-color" value="#ffffff">
+          <input type="checkbox" id="fill-none" title="No fill"> <span>none</span>
+        </label>
+        <label class="color-label">
+          <span>Width</span>
+          <input type="range" id="stroke-width" min="1" max="20" value="2">
+          <span id="stroke-width-val">2</span>
+        </label>
+      </div>
+      <div class="tool-group" id="actions">
+        <button id="btn-delete" title="Delete selected (Del)">Delete</button>
+        <button id="btn-clear" title="Clear all">Clear</button>
+      </div>
+    </div>
+    <div id="canvas-container">
+      <svg id="canvas" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="arrowhead" markerWidth="10" markerHeight="7"
+                  refX="10" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" fill="#000000"/>
+          </marker>
+        </defs>
+        <g id="shapes-layer"></g>
+        <g id="selection-layer"></g>
+      </svg>
+    </div>
+  </div>
+  <script type="module" src="app.js"></script>
+</body>
+</html>

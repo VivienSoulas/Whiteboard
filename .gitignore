@@ -1,0 +1,9 @@
+# IDE and editor files
+.vscode/*
+!.vscode/extensions.json
+
+# OS generated files
+.DS_Store
+
+# Build directories
+out/
