@@ -9,15 +9,21 @@
 <body>
   <div id="app">
     <div id="toolbar">
+
+      <!-- Drawing tools -->
       <div class="tool-group" id="tools">
-        <button class="tool-btn active" data-tool="select" title="Select (S)">&#9654;</button>
-        <button class="tool-btn" data-tool="rectangle" title="Rectangle (R)">&#9645;</button>
-        <button class="tool-btn" data-tool="ellipse" title="Ellipse (E)">&#9675;</button>
-        <button class="tool-btn" data-tool="line" title="Line (L)">&#9135;</button>
-        <button class="tool-btn" data-tool="arrow" title="Arrow (A)">&#10132;</button>
-        <button class="tool-btn" data-tool="pen" title="Pen (P)">&#9998;</button>
-        <button class="tool-btn" data-tool="text" title="Text (T)">T</button>
+        <button class="tool-btn active" data-tool="select"     title="Select (S)">&#9654;</button>
+        <button class="tool-btn"        data-tool="rectangle"  title="Rectangle (R)">&#9645;</button>
+        <button class="tool-btn"        data-tool="ellipse"    title="Ellipse (E)">&#9675;</button>
+        <button class="tool-btn"        data-tool="line"       title="Line (L)">&#9135;</button>
+        <button class="tool-btn"        data-tool="arrow"      title="Arrow (A)">&#10132;</button>
+        <button class="tool-btn"        data-tool="pen"        title="Pen (P)">&#9998;</button>
+        <button class="tool-btn"        data-tool="text"       title="Text (T)">T</button>
+        <button class="tool-btn"        data-tool="stickynote" title="Sticky Note (N)">&#128203;</button>
+        <button class="tool-btn"        data-tool="connector"  title="Connector (K)">&#9135;&#10132;</button>
       </div>
+
+      <!-- Style controls -->
       <div class="tool-group" id="colors">
         <label class="color-label">
           <span>Stroke</span>
@@ -33,20 +39,85 @@
           <input type="range" id="stroke-width" min="1" max="20" value="2">
           <span id="stroke-width-val">2</span>
         </label>
+        <!-- Sticky note category picker (shown only when stickynote tool active) -->
+        <label class="color-label" id="sticky-category-row" style="display:none">
+          <span>Color</span>
+          <select id="sticky-category" title="Sticky note color">
+            <option value="yellow">Yellow</option>
+            <option value="blue">Blue</option>
+            <option value="green">Green</option>
+            <option value="pink">Pink</option>
+            <option value="orange">Orange</option>
+          </select>
+        </label>
+        <!-- Marker pickers (shown when line/arrow/connector tool active) -->
+        <span class="color-label" id="marker-row" style="display:none">
+          <label class="color-label">
+            <span>Start</span>
+            <select id="marker-start" title="Start marker"></select>
+          </label>
+          <label class="color-label">
+            <span>End</span>
+            <select id="marker-end" title="End marker"></select>
+          </label>
+        </span>
       </div>
+
+      <!-- Alignment tools -->
+      <div class="tool-group" id="align-group">
+        <button class="action-btn" id="align-left"    title="Align left">&#9612;</button>
+        <button class="action-btn" id="align-hcenter" title="Align center H">&#9615;</button>
+        <button class="action-btn" id="align-right"   title="Align right">&#9616;</button>
+        <button class="action-btn" id="align-top"     title="Align top">&#9650;</button>
+        <button class="action-btn" id="align-vcenter" title="Align center V">&#8597;</button>
+        <button class="action-btn" id="align-bottom"  title="Align bottom">&#9660;</button>
+      </div>
+
+      <!-- History + clipboard -->
+      <div class="tool-group" id="history-group">
+        <button class="action-btn" id="btn-undo" title="Undo (Ctrl+Z)">&#8630;</button>
+        <button class="action-btn" id="btn-redo" title="Redo (Ctrl+Y)">&#8631;</button>
+      </div>
+
+      <!-- Zoom controls -->
+      <div class="tool-group" id="zoom-group">
+        <button class="action-btn" id="btn-zoom-out"   title="Zoom out">&#8722;</button>
+        <span   id="zoom-level" class="zoom-display">100%</span>
+        <button class="action-btn" id="btn-zoom-in"    title="Zoom in">&#43;</button>
+        <button class="action-btn" id="btn-zoom-reset" title="Reset zoom (100%)">1:1</button>
+        <button class="action-btn" id="btn-zoom-fit"   title="Fit content">&#9974;</button>
+      </div>
+
+      <!-- File actions -->
+      <div class="tool-group" id="file-group">
+        <button class="action-btn" id="btn-save-local"   title="Save JSON to file">&#128190; Save</button>
+        <button class="action-btn" id="btn-load-local"   title="Load JSON from file">&#128194; Load</button>
+        <button class="action-btn" id="btn-export-svg"   title="Export as SVG">SVG</button>
+        <button class="action-btn" id="btn-export-png"   title="Export as PNG">PNG</button>
+      </div>
+
+      <!-- Server boards -->
+      <div class="tool-group" id="server-group">
+        <input  type="text" id="server-board-name"  placeholder="Board name" class="board-name-input">
+        <button class="action-btn" id="btn-save-server" title="Save to server">&#9729; Save</button>
+        <select id="server-board-list" class="board-list-select" title="Saved boards">
+          <option value="">-- boards --</option>
+        </select>
+        <button class="action-btn" id="btn-load-server" title="Load from server">Load</button>
+        <button class="action-btn" id="btn-del-server"  title="Delete board">&#10005;</button>
+      </div>
+
+      <!-- Delete/clear -->
       <div class="tool-group" id="actions">
         <button id="btn-delete" title="Delete selected (Del)">Delete</button>
-        <button id="btn-clear" title="Clear all">Clear</button>
+        <button id="btn-clear"  title="Clear all">Clear</button>
       </div>
-    </div>
+
+    </div><!-- #toolbar -->
+
     <div id="canvas-container">
       <svg id="canvas" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <marker id="arrowhead" markerWidth="10" markerHeight="7"
-                  refX="10" refY="3.5" orient="auto">
-            <polygon points="0 0, 10 3.5, 0 7" fill="#000000"/>
-          </marker>
-        </defs>
+        <defs><!-- markers injected here by shapes --></defs>
         <g id="shapes-layer"></g>
         <g id="selection-layer"></g>
       </svg>

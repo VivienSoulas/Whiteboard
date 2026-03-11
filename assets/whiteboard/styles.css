@@ -20,8 +20,8 @@ body {
 #toolbar {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 6px 12px;
+  gap: 8px;
+  padding: 4px 10px;
   background: #2b2b2b;
   border-bottom: 2px solid #111;
   flex-shrink: 0;
@@ -31,7 +31,7 @@ body {
 .tool-group {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
   padding: 0 6px;
   border-right: 1px solid #555;
 }
@@ -40,19 +40,21 @@ body {
   border-right: none;
 }
 
+/* Tool buttons (larger) */
 .tool-btn {
-  width: 36px;
-  height: 36px;
+  width: 34px;
+  height: 34px;
   border: 2px solid #555;
   border-radius: 4px;
   background: #3c3c3c;
   color: #ddd;
-  font-size: 18px;
+  font-size: 16px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: background 0.15s, border-color 0.15s;
+  padding: 0;
 }
 
 .tool-btn:hover {
@@ -66,6 +68,32 @@ body {
   color: #fff;
 }
 
+/* Compact action buttons */
+.action-btn {
+  padding: 4px 8px;
+  border: 1px solid #555;
+  border-radius: 4px;
+  background: #3c3c3c;
+  color: #ccc;
+  font-size: 12px;
+  cursor: pointer;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+  transition: background 0.15s;
+}
+
+.action-btn:hover {
+  background: #555;
+  color: #fff;
+}
+
+.action-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
 .color-label {
   display: flex;
   align-items: center;
@@ -75,8 +103,8 @@ body {
 }
 
 input[type="color"] {
-  width: 28px;
-  height: 28px;
+  width: 26px;
+  height: 26px;
   border: none;
   padding: 0;
   cursor: pointer;
@@ -84,7 +112,7 @@ input[type="color"] {
 }
 
 input[type="range"] {
-  width: 70px;
+  width: 65px;
   cursor: pointer;
 }
 
@@ -92,26 +120,68 @@ input[type="checkbox"] {
   cursor: pointer;
 }
 
+select {
+  background: #3c3c3c;
+  color: #ccc;
+  border: 1px solid #555;
+  border-radius: 3px;
+  padding: 2px 4px;
+  font-size: 12px;
+  height: 26px;
+  cursor: pointer;
+}
+
+select:hover {
+  border-color: #888;
+}
+
+/* Delete/clear buttons */
 #actions button {
-  padding: 6px 12px;
-  border: 2px solid #555;
+  padding: 4px 10px;
+  border: 1px solid #555;
   border-radius: 4px;
   background: #3c3c3c;
   color: #ddd;
-  font-size: 13px;
+  font-size: 12px;
   cursor: pointer;
   transition: background 0.15s;
+  height: 28px;
 }
 
-#actions button:hover {
-  background: #555;
-}
+#actions button:hover { background: #555; }
 
 #btn-delete:hover {
   background: #c0392b;
   border-color: #c0392b;
 }
 
+/* Zoom display */
+.zoom-display {
+  color: #aaa;
+  font-size: 12px;
+  min-width: 38px;
+  text-align: center;
+}
+
+/* Server board inputs */
+.board-name-input {
+  background: #3c3c3c;
+  color: #ccc;
+  border: 1px solid #555;
+  border-radius: 3px;
+  padding: 2px 6px;
+  font-size: 12px;
+  height: 26px;
+  width: 90px;
+}
+
+.board-name-input::placeholder { color: #777; }
+
+.board-list-select {
+  width: 110px;
+}
+
+/* Canvas */
 #canvas-container {
   flex: 1;
   overflow: hidden;
@@ -126,21 +196,27 @@ input[type="checkbox"] {
   cursor: crosshair;
 }
 
-#canvas.tool-select {
-  cursor: default;
-}
+#canvas.tool-select    { cursor: default; }
+#canvas.tool-text      { cursor: text; }
+#canvas.tool-stickynote { cursor: text; }
+#canvas.tool-connector  { cursor: crosshair; }
 
-#canvas.tool-text {
-  cursor: text;
-}
+/* Panning cursor (Space held) */
+#canvas.panning { cursor: grab; }
+#canvas.panning:active { cursor: grabbing; }
 
-/* Selection handles */
+/* Selection */
 .selection-box {
   fill: none;
   stroke: #1a73e8;
-  stroke-width: 1;
   stroke-dasharray: 4 3;
   pointer-events: none;
+}
+
+.union-box {
+  stroke: #1a73e8;
+  stroke-dasharray: 6 4;
+  opacity: 0.5;
 }
 
 .resize-handle {
@@ -155,12 +231,32 @@ input[type="checkbox"] {
 .resize-handle[data-handle="n"],  .resize-handle[data-handle="s"]  { cursor: ns-resize; }
 .resize-handle[data-handle="e"],  .resize-handle[data-handle="w"]  { cursor: ew-resize; }
 
+/* Rubber-band selection marquee */
+.marquee-box {
+  fill: rgba(26, 115, 232, 0.08);
+  stroke: #1a73e8;
+  stroke-width: 1;
+  stroke-dasharray: 4 3;
+  pointer-events: none;
+}
+
 /* Text foreignObject */
 .text-fo div {
   outline: none;
   min-width: 20px;
   min-height: 20px;
   white-space: pre;
+}
+
+/* Sticky note */
+.sticky-fo div {
+  outline: none;
+  width: 100%;
+  height: 100%;
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow: hidden;
+  padding: 2px;
 }
 
 /* Ghost preview while drawing */

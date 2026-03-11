@@ -83,12 +83,7 @@ namespace cgi_handler
             envs.push_back("PATH_INFO=" + script_name);
             envs.push_back("PATH_TRANSLATED=" + file_path);
             
-            std::string query_string = "";
-            size_t query_pos = req.path.find('?');
-            if (query_pos != std::string::npos) {
-                query_string = req.path.substr(query_pos + 1);
-            }
-            envs.push_back("QUERY_STRING=" + query_string);
+            envs.push_back("QUERY_STRING=" + req.query);
 
             std::stringstream ss;
             ss << req.body.size();
