@@ -4,159 +4,310 @@
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Webserv - Port 8080</title>
+	<title>Whiteboard</title>
 	<style>
+		:root {
+			--bg: #f4efe6;
+			--paper: rgba(255, 252, 247, 0.88);
+			--ink: #17212b;
+			--muted: #5b6773;
+			--accent: #0f766e;
+			--accent-dark: #0b5d57;
+			--line: rgba(23, 33, 43, 0.12);
+			--shadow: 0 24px 60px rgba(23, 33, 43, 0.14);
+		}
+
+		* {
+			box-sizing: border-box;
+		}
+
 		body {
-			font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+			font-family: Georgia, "Times New Roman", serif;
 			line-height: 1.6;
-			color: #333;
-			max-width: 800px;
+			color: var(--ink);
+			margin: 0;
+			min-height: 100vh;
+			background:
+				radial-gradient(circle at top left, rgba(15, 118, 110, 0.16), transparent 28%),
+				linear-gradient(135deg, #f7f1e8 0%, #efe4d3 52%, #e7dcc8 100%);
+		}
+
+		body::before {
+			content: "";
+			position: fixed;
+			inset: 0;
+			background-image:
+				linear-gradient(rgba(23, 33, 43, 0.03) 1px, transparent 1px),
+				linear-gradient(90deg, rgba(23, 33, 43, 0.03) 1px, transparent 1px);
+			background-size: 36px 36px;
+			pointer-events: none;
+		}
+
+		main {
+			position: relative;
+			max-width: 1100px;
 			margin: 0 auto;
-			padding: 2rem;
+			padding: 48px 24px 64px;
 		}
 
-		h1,
-		h2,
-		h3 {
-			color: #2c3e50;
+		.hero {
+			display: grid;
+			grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.9fr);
+			gap: 28px;
+			align-items: stretch;
 		}
 
-		.card {
-			border: 1px solid #ddd;
-			border-radius: 8px;
-			padding: 1.5rem;
-			margin-bottom: 2rem;
-			box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+		.panel {
+			background: var(--paper);
+			backdrop-filter: blur(8px);
+			border: 1px solid var(--line);
+			border-radius: 28px;
+			box-shadow: var(--shadow);
+		}
+
+		.hero-copy {
+			padding: 48px;
+		}
+
+		.eyebrow {
+			display: inline-flex;
+			align-items: center;
+			gap: 10px;
+			padding: 8px 14px;
+			border-radius: 999px;
+			background: rgba(15, 118, 110, 0.1);
+			color: var(--accent-dark);
+			font-size: 0.88rem;
+			letter-spacing: 0.08em;
+			text-transform: uppercase;
+		}
+
+		h1 {
+			margin: 22px 0 18px;
+			font-size: clamp(3rem, 6vw, 5.6rem);
+			line-height: 0.95;
+			letter-spacing: -0.05em;
+			font-weight: 700;
+		}
+
+		.lead {
+			max-width: 34rem;
+			font-size: 1.12rem;
+			color: var(--muted);
+			margin: 0 0 32px;
+		}
+
+		.actions {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 14px;
+			margin-bottom: 36px;
 		}
 
 		.btn {
-			display: inline-block;
-			background: #3498db;
-			color: white;
-			padding: 0.5rem 1rem;
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			padding: 14px 22px;
+			border-radius: 999px;
 			text-decoration: none;
-			border-radius: 4px;
-			margin-right: 0.5rem;
-			margin-bottom: 0.5rem;
-			font-weight: bold;
-			border: none;
-			font-size: 1rem;
-			cursor: pointer;
+			font-size: 0.98rem;
+			font-weight: 700;
+			letter-spacing: 0.01em;
+			transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+		}
+
+		.btn-primary {
+			background: var(--accent);
+			color: #fff;
+			box-shadow: 0 14px 30px rgba(15, 118, 110, 0.25);
+		}
+
+		.btn-secondary {
+			background: rgba(255, 255, 255, 0.72);
+			color: var(--ink);
+			border: 1px solid var(--line);
 		}
 
 		.btn:hover {
-			background: #2980b9;
+			transform: translateY(-2px);
 		}
 
-		.btn-alt {
-			background: #2ecc71;
+		.btn-primary:hover {
+			background: var(--accent-dark);
 		}
 
-		.btn-alt:hover {
-			background: #27ae60;
+		.btn-secondary:hover {
+			background: rgba(255, 255, 255, 0.95);
 		}
 
-		.btn-danger {
-			background: #e74c3c;
+		.notes {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 12px;
+			color: var(--muted);
+			font-size: 0.92rem;
 		}
 
-		.btn-danger:hover {
-			background: #c0392b;
+		.notes span {
+			padding: 8px 12px;
+			border-radius: 999px;
+			background: rgba(255, 255, 255, 0.62);
+			border: 1px solid var(--line);
 		}
 
-		code {
-			background: #f4f4f4;
-			padding: 0.2rem 0.4rem;
-			border-radius: 4px;
-			color: #e83e8c;
+		.preview {
+			position: relative;
+			overflow: hidden;
+			padding: 28px;
+			min-height: 520px;
+			background:
+				linear-gradient(160deg, rgba(255, 255, 255, 0.72), rgba(243, 235, 223, 0.92)),
+				linear-gradient(0deg, rgba(23, 33, 43, 0.04) 1px, transparent 1px),
+				linear-gradient(90deg, rgba(23, 33, 43, 0.04) 1px, transparent 1px);
+			background-size: auto, 36px 36px, 36px 36px;
+		}
+
+		.preview::after {
+			content: "";
+			position: absolute;
+			inset: 24px;
+			border: 1px solid rgba(23, 33, 43, 0.08);
+			border-radius: 22px;
+			pointer-events: none;
+		}
+
+		.preview svg {
+			width: 100%;
+			height: 100%;
+			min-height: 460px;
+		}
+
+		.summary {
+			display: grid;
+			grid-template-columns: repeat(3, minmax(0, 1fr));
+			gap: 18px;
+			margin-top: 24px;
+		}
+
+		.summary-card {
+			padding: 22px;
+			border-radius: 22px;
+			background: rgba(255, 252, 247, 0.78);
+			border: 1px solid var(--line);
+			box-shadow: 0 10px 25px rgba(23, 33, 43, 0.07);
+		}
+
+		.summary-card h2 {
+			margin: 0 0 8px;
+			font-size: 1.1rem;
+		}
+
+		.summary-card p {
+			margin: 0;
+			color: var(--muted);
+			font-size: 0.95rem;
+		}
+
+		footer {
+			margin-top: 22px;
+			text-align: center;
+			color: var(--muted);
+			font-size: 0.9rem;
+		}
+
+		@media (max-width: 920px) {
+			main {
+				padding: 28px 16px 40px;
+			}
+
+			.hero {
+				grid-template-columns: 1fr;
+			}
+
+			.hero-copy,
+			.preview {
+				padding: 28px;
+			}
+
+			.summary {
+				grid-template-columns: 1fr;
+			}
+		}
+
+		@media (max-width: 560px) {
+			h1 {
+				font-size: 2.7rem;
+			}
+
+			.lead {
+				font-size: 1rem;
+			}
+
+			.hero-copy,
+			.preview {
+				padding: 22px;
+				border-radius: 24px;
+			}
+
+			.preview svg {
+				min-height: 320px;
+			}
 		}
 	</style>
 </head>
 
 <body>
-	<h1>🚀 Webserv Control Panel (Port 8080)</h1>
-	<p>Welcome to the Primary Server instance! This server listens on port 8080. Explore the features below.</p>
+	<main>
+		<section class="hero">
+			<div class="panel hero-copy">
+				<div class="eyebrow">Whiteboard App</div>
+				<h1>Draw fast. Iterate visually. Stay in flow.</h1>
+				<p class="lead">A focused digital whiteboard for sketching interfaces, mapping ideas, annotating concepts, and refining visual thinking without distraction.</p>
+				<div class="actions">
+					<a href="/whiteboard/" class="btn btn-primary">Open Whiteboard</a>
+					<a href="/whiteboard/" class="btn btn-secondary">Resume Drawing</a>
+				</div>
+				<div class="notes">
+					<span>SVG-based drawing</span>
+					<span>Shapes, text and freehand tools</span>
+					<span>Built for direct editing</span>
+				</div>
+			</div>
 
-	<div class="card">
-		<h2>📂 Directory Listing & Static Files</h2>
-		<p>This path has auto-indexing explicitly enabled via <code>directory_listing on;</code>.</p>
-		<a href="/files/" class="btn">View Directory Listing</a>
-	</div>
+			<div class="panel preview" aria-hidden="true">
+				<svg viewBox="0 0 520 420" xmlns="http://www.w3.org/2000/svg">
+					<rect x="54" y="58" width="164" height="108" rx="20" fill="rgba(15, 118, 110, 0.10)" stroke="#0f766e" stroke-width="4" />
+					<ellipse cx="356" cy="110" rx="88" ry="54" fill="rgba(192, 132, 33, 0.14)" stroke="#c08421" stroke-width="4" />
+					<line x1="126" y1="220" x2="326" y2="296" stroke="#17212b" stroke-width="5" stroke-linecap="round" />
+					<line x1="330" y1="296" x2="434" y2="212" stroke="#17212b" stroke-width="5" stroke-linecap="round" />
+					<polygon points="434,212 410,216 424,236" fill="#17212b" />
+					<polyline points="74,306 126,278 168,334 222,248 274,322 338,258 396,288" fill="none" stroke="#be123c" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" />
+					<rect x="248" y="156" width="122" height="82" rx="18" fill="rgba(255, 255, 255, 0.86)" stroke="#17212b" stroke-width="3" stroke-dasharray="8 6" />
+					<text x="270" y="206" fill="#17212b" font-family="Georgia, serif" font-size="28" font-weight="700">Ideas</text>
+					<text x="82" y="98" fill="#17212b" font-family="Georgia, serif" font-size="22">Sketch</text>
+					<text x="314" y="118" fill="#17212b" font-family="Georgia, serif" font-size="22">Map</text>
+				</svg>
+			</div>
+		</section>
 
-	<div class="card">
-		<h2>📤 File Uploads</h2>
-		<p>This route accepts <code>POST</code> and saves files securely mapping to <code>./assets/uploads</code>.</p>
-		<div style="margin-top: 15px; border-top: 1px dashed #ddd; padding-top: 15px;">
-			<form action="/upload" method="POST" enctype="multipart/form-data">
-				<input type="file" name="file" required style="margin-bottom: 10px;">
-				<input type="submit" value="Upload File" class="btn" style="background-color: #3498db;">
-			</form>
-		</div>
-		<div style="margin-top: 15px; border-top: 1px dashed #ddd; padding-top: 15px;">
-			<p>Delete an existing upload:</p>
-			<input type="text" id="delete-name" placeholder="File name (e.g. image.jpg)"
-				style="padding: 0.5rem; border-radius: 4px; border: 1px solid #ddd; margin-bottom: 10px; width: 250px;">
-			<button onclick="handleDelete()" class="btn btn-danger" style="margin-bottom: 0;">Delete File</button>
-			<div id="delete-status" style="margin-top: 10px; font-weight: bold;"></div>
-		</div>
-		<script>
-			function handleDelete() {
-				const name = document.getElementById('delete-name').value.trim();
-				const status = document.getElementById('delete-status');
-				if (!name) {
-					status.innerText = "Please enter a file name.";
-					status.style.color = "#e67e22";
-					return;
-				}
-				fetch('/upload/' + name, { method: 'DELETE' })
-					.then(response => {
-						if (response.status === 204) {
-							status.innerText = "✅ File deleted successfully!";
-							status.style.color = "#27ae60";
-						} else if (response.status === 404) {
-							status.innerText = "⚠️ File not found.";
-							status.style.color = "#f39c12";
-						} else {
-							status.innerText = "❌ Failed to delete (Error " + response.status + ")";
-							status.style.color = "#e74c3c";
-						}
-					})
-					.catch(err => {
-						status.innerText = "Network Error!";
-						status.style.color = "#e74c3c";
-					});
-			}
-		</script>
-	</div>
+		<section class="summary">
+			<article class="summary-card">
+				<h2>Direct Start</h2>
+				<p>Open the canvas immediately and move straight into drawing, editing, and visual exploration.</p>
+			</article>
+			<article class="summary-card">
+				<h2>Visual Workflow</h2>
+				<p>Use the canvas for rough layouts, annotations, shape composition, and quick visual iteration without leaving the browser.</p>
+			</article>
+			<article class="summary-card">
+				<h2>Built To Sketch</h2>
+				<p>Work with shapes, text, connectors, and freehand strokes in a space designed for fast drafting and refinement.</p>
+			</article>
+		</section>
 
-	<div class="card">
-		<h2>⚙️ PHP CGI Execution</h2>
-		<p>Executes PHP scripts automatically utilizing the strict <code>fork()</code> and <code>execve()</code>
-			mapping.</p>
-		<a href="/cgi-bin/hello.php" class="btn btn-alt">Test PHP Script</a>
-		<a href="/cgi-bin/" class="btn">Browse CGI Bin</a>
-	</div>
-
-	<div class="card">
-		<h2>🔗 Routing & Redirects</h2>
-		<p>Try accessing the <code>/old</code> route, which is configured to explicitly drop a
-			<code>301 Moved Permanently</code> back here.
-		</p>
-		<a href="/old" class="btn">Try 301 Redirect</a>
-	</div>
-
-	<div class="card">
-		<h2>🎨 Whiteboard</h2>
-		<p>Interactive SVG whiteboard — draw rectangles, ellipses, lines, arrows, freehand paths and text. Select, move, resize and delete shapes.</p>
-		<a href="/whiteboard/" class="btn btn-alt">Open Whiteboard</a>
-	</div>
-
-	<div class="card" style="background-color: #f8f9fa;">
-		<h2>🌐 Switch to Server 2 (Port 8081)</h2>
-		<p>Switch over to the second virtual server running simultaneously on port 8081 demonstrating HTTP DELETE and
-			Python CGI support.</p>
-		<a href="http://localhost:8081" class="btn btn-danger">Go to Port 8081 »</a>
-	</div>
+		<footer>Open the canvas and keep working.</footer>
+	</main>
 </body>
 
 </html>
