@@ -4,13 +4,14 @@ let undoStack = [];
 let redoStack = [];
 
 function clone(shapes) {
-  return JSON.parse(JSON.stringify(shapes));
+  return structuredClone(shapes);
 }
 
 export function push(shapes) {
   undoStack.push(clone(shapes));
   if (undoStack.length > MAX_HISTORY) undoStack.shift();
   redoStack = [];
+  document.dispatchEvent(new CustomEvent('historychange'));
 }
 
 export function undo(currentShapes) {

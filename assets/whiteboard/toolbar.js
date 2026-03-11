@@ -2,6 +2,7 @@ import * as state from './state.js';
 import * as persistence from './persistence.js';
 import { MARKER_TYPES } from './markers.js';
 import * as viewport from './viewport.js';
+import * as history from './history.js';
 
 let _callbacks = {};
 
@@ -18,6 +19,7 @@ export function init(callbacks) {
   _initMarkerPickers();
   _initKeyboardShortcuts();
   _initServerUI();
+  _initZOrder();
 
   // Update alignment button state when selection changes
   document.addEventListener('selectionchange', _updateAlignState);
@@ -114,6 +116,15 @@ function _initActionButtons() {
   document.getElementById('btn-clear').addEventListener('click',  _callbacks.onClear);
   document.getElementById('btn-undo').addEventListener('click',   _callbacks.onUndo);
   document.getElementById('btn-redo').addEventListener('click',   _callbacks.onRedo);
+  document.addEventListener('historychange', _updateHistoryState);
+  _updateHistoryState();
+}
+
+function _updateHistoryState() {
+  const btnUndo = document.getElementById('btn-undo');
+  const btnRedo = document.getElementById('btn-redo');
+  if (btnUndo) btnUndo.disabled = !history.canUndo();
+  if (btnRedo) btnRedo.disabled = !history.canRedo();
 }
 
 // ── Alignment buttons ─────────────────────────────────────────────────────────
@@ -290,7 +301,22 @@ function _initKeyboardShortcuts() {
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
+function _initZOrder() {
+  const btnFront = document.getElementById('btn-bring-front');
+  const btnBack  = document.getElementById('btn-send-back');
+  if (btnFront) btnFront.addEventListener('click', () => _callbacks.onBringToFront && _callbacks.onBringToFront());
+  if (btnBack)  btnBack.addEventListener('click',  () => _callbacks.onSendToBack  && _callbacks.onSendToBack());
+  document.addEventListener('selectionchange', _updateZOrderState);
+  _updateZOrderState();
+}
 
+function _updateZOrderState() {
+  const count = state.getSelectedIds().size;
+  const btnFront = document.getElementById('btn-bring-front');
+  const btnBack  = document.getElementById('btn-send-back');
+  if (btnFront) btnFront.disabled = count === 0;
+  if (btnBack)  btnBack.disabled  = count === 0;
+}
 function _fireStyleChange() {
   document.dispatchEvent(new CustomEvent('stylechange'));
 }

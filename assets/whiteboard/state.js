@@ -44,7 +44,7 @@ export function removeShape(id) {
 }
 
 export function getShapes() {
-  return shapes;
+  return [...shapes];
 }
 
 export function setShapes(arr) {
@@ -56,7 +56,17 @@ export function clearShapes() {
   shapes = [];
   selectedIds = new Set();
 }
+export function bringToFront(id) {
+  const idx = shapes.findIndex(s => s.id === id);
+  if (idx === -1 || idx === shapes.length - 1) return;
+  shapes.push(shapes.splice(idx, 1)[0]);
+}
 
+export function sendToBack(id) {
+  const idx = shapes.findIndex(s => s.id === id);
+  if (idx <= 0) return;
+  shapes.unshift(shapes.splice(idx, 1)[0]);
+}
 // ── Selection (multi-select) ──────────────────────────────────────────────────
 
 export function setSelected(id) {

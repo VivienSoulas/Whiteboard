@@ -7,7 +7,7 @@ Actions (query string):
   GET  ?action=list                 → JSON array of board names
   GET  ?action=load&name=<name>     → board JSON
   POST ?action=save&name=<name>     → save board (body = JSON), returns {"ok":true}
-  GET  ?action=delete&name=<name>   → delete board, returns {"ok":true}
+  POST ?action=delete&name=<name>   → delete board, returns {"ok":true}
 """
 
 import os
@@ -101,6 +101,9 @@ def main():
         respond({'ok': True, 'name': name})
 
     elif action == 'delete':
+        if method != 'POST':
+            error('POST required', '405 Method Not Allowed')
+            return
         name = safe_name(param('name'))
         if not name:
             error('Invalid board name')

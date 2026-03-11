@@ -264,3 +264,11 @@ select:hover {
   pointer-events: none;
   opacity: 0.7;
 }
+
+/* Connector anchor hint */
+.anchor-hint {
+  fill: rgba(26, 115, 232, 0.25);
+  stroke: #1a73e8;
+  stroke-width: 1.5;
+  pointer-events: none;
+}

@@ -9,6 +9,7 @@ import { nearestAnchor, getAnchorPoint } from '../shapebounds.js';
 let drawing = false;
 let currentId = null;
 let svgEl = null;
+let _anchorHintEl = null;
 
 const CONNECTABLE_TYPES = new Set(['rectangle', 'ellipse', 'text', 'stickynote']);
 
@@ -48,11 +49,14 @@ export function onMove(pt, e) {
   if (!drawing || !currentId) return;
   state.updateShape(currentId, { x2: pt.x, y2: pt.y });
   renderer.render();
+  const tgt = _findConnectableShape(e.target);
+  _updateAnchorHint(tgt, pt);
 }
 
 export function onUp(pt, e) {
   if (!drawing || !currentId) return;
   drawing = false;
+  _anchorHintEl = null;
 
   // Try to attach to a target shape
   const tgt = _findConnectableShape(e.target);
@@ -89,4 +93,19 @@ function _findConnectableShape(target) {
     el = el.parentElement;
   }
   return null;
+}
+
+function _updateAnchorHint(shape, pt) {
+  if (_anchorHintEl) { _anchorHintEl.remove(); _anchorHintEl = null; }
+  if (!shape || !svgEl) return;
+  const anchor = nearestAnchor(shape, pt);
+  const ap = getAnchorPoint(shape, anchor);
+  const el = document.createElementNS(NS, 'circle');
+  el.setAttribute('cx', ap.x);
+  el.setAttribute('cy', ap.y);
+  el.setAttribute('r', 6);
+  el.setAttribute('class', 'anchor-hint');
+  const selLayer = svgEl.querySelector('#selection-layer');
+  if (selLayer) selLayer.appendChild(el);
+  _anchorHintEl = el;
 }

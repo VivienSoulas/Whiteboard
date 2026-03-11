@@ -1,4 +1,5 @@
 import * as viewport from './viewport.js';
+import * as renderer from './renderer.js';
 
 let _getToolFn  = null;
 let _svgEl      = null;
@@ -42,7 +43,7 @@ function _onMouseMove(e) {
     viewport.pan(e.clientX - _panStart.x, e.clientY - _panStart.y);
     _panStart = { x: e.clientX, y: e.clientY };
     // Trigger selection re-render so handles stay correct
-    import('./renderer.js').then(r => r.renderSelection());
+    renderer.renderSelection();
     return;
   }
   const tool = _getToolFn();
@@ -66,6 +67,7 @@ function _onDblClick(e) {
 function _onKeyDown(e) {
   if (e.code === 'Space' && !e.target.isContentEditable) {
     _spaceDown = true;
+    if (_svgEl) _svgEl.classList.add('panning');
     e.preventDefault();
     return;
   }
@@ -75,14 +77,17 @@ function _onKeyDown(e) {
 }
 
 function _onKeyUp(e) {
-  if (e.code === 'Space') _spaceDown = false;
+  if (e.code === 'Space') {
+    _spaceDown = false;
+    if (_svgEl) _svgEl.classList.remove('panning');
+  }
 }
 
 function _onWheel(e) {
   e.preventDefault();
   const factor = e.deltaY > 0 ? -0.08 : 0.08;
   viewport.zoomAtPoint(factor, e.clientX, e.clientY);
-  import('./renderer.js').then(r => r.renderSelection());
+  renderer.renderSelection();
 }
 
 // Convert client coordinates to SVG canvas coordinates (correct under any viewBox)

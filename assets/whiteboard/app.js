@@ -109,13 +109,13 @@ function onServerSave(name) {
   if (!name) return;
   persistence.serverList().then(names => {
     if (names.includes(name) && !confirm(`Board "${name}" already exists. Overwrite?`)) return;
-    const doc = state.exportBoard();
+    const doc = { ...state.exportBoard(), viewport: viewport.get() };
     persistence.serverSave(name, doc).then(() => {
       toolbar.refreshBoardList();
     }).catch(err => alert('Save failed: ' + err.message));
   }).catch(() => {
     // Can't reach server to check — save anyway
-    const doc = state.exportBoard();
+    const doc = { ...state.exportBoard(), viewport: viewport.get() };
     persistence.serverSave(name, doc).then(() => {
       toolbar.refreshBoardList();
     }).catch(err => alert('Save failed: ' + err.message));
@@ -141,6 +141,22 @@ function onServerDelete(name) {
   persistence.serverDelete(name).then(() => {
     toolbar.refreshBoardList();
   }).catch(err => alert('Delete failed: ' + err.message));
+}
+
+function onBringToFront() {
+  const ids = [...state.getSelectedIds()];
+  if (ids.length === 0) return;
+  history.push(state.getShapes());
+  for (const id of ids) state.bringToFront(id);
+  renderer.render();
+}
+
+function onSendToBack() {
+  const ids = [...state.getSelectedIds()];
+  if (ids.length === 0) return;
+  history.push(state.getShapes());
+  for (const id of ids) state.sendToBack(id);
+  renderer.render();
 }
 
 // Wire contenteditable inputs for text and stickynote shapes
@@ -196,6 +212,8 @@ function init() {
     onServerSave,
     onServerLoad,
     onServerDelete,
+    onBringToFront,
+    onSendToBack,
   });
 
   document.addEventListener('stylechange', () => {

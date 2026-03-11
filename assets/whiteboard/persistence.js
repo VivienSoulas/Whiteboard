@@ -40,6 +40,11 @@ export function validateAndLoad(doc) {
   if (!doc || typeof doc !== 'object') return 'Invalid document';
   if (doc.version !== BOARD_VERSION) return `Unsupported version: ${doc.version}`;
   if (!Array.isArray(doc.shapes)) return 'Missing shapes array';
+  for (const s of doc.shapes) {
+    if (!s || typeof s !== 'object') return 'Shape is not an object';
+    if (!s.id || typeof s.id !== 'string') return 'Shape missing id';
+    if (!KNOWN_TYPES.has(s.type)) return `Unknown shape type: ${s.type}`;
+  }
   return null; // ok
 }
 
@@ -70,7 +75,9 @@ export async function serverSave(name, doc) {
 }
 
 export async function serverDelete(name) {
-  const res = await fetch(`${API_BASE}?action=delete&name=${encodeURIComponent(name)}`);
+  const res = await fetch(`${API_BASE}?action=delete&name=${encodeURIComponent(name)}`, {
+    method: 'POST',
+  });
   if (!res.ok) throw new Error(`Server error: ${res.status}`);
   return res.json();
 }

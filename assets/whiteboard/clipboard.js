@@ -4,14 +4,14 @@ let _clipboard = [];
 
 export function copy(shapes) {
   if (!shapes || shapes.length === 0) return;
-  _clipboard = JSON.parse(JSON.stringify(shapes));
+  _clipboard = structuredClone(shapes);
 }
 
 export function paste(nextIdFn) {
   if (_clipboard.length === 0) return [];
   const idMap = {};
   const pasted = _clipboard.map(s => {
-    const c = JSON.parse(JSON.stringify(s));
+    const c = structuredClone(s);
     const newId = nextIdFn();
     idMap[s.id] = newId;
     c.id = newId;

@@ -1,11 +1,13 @@
 import * as state from '../state.js';
 import * as renderer from '../renderer.js';
+import * as history from '../history.js';
 
 let drawing = false;
 let startPt = null;
 let currentId = null;
 
 export function onDown(pt, e) {
+  history.push(state.getShapes());
   drawing = true;
   startPt = pt;
   const style = state.currentStyle();

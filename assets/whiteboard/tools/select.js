@@ -145,7 +145,19 @@ export function doRedo()     { _doRedo(); }
 export function doCopy()     { _doCopy(); }
 export function doPaste()    { _doPaste(); }
 export function doDuplicate() { _doDuplicate(); }
-
+export function onDblClick(pt, e) {
+  const shapeEl = _findShapeEl(e.target);
+  if (!shapeEl) return;
+  const s = state.getShape(shapeEl.dataset.shapeId);
+  if (!s) return;
+  if (s.type === 'text') {
+    const div = document.querySelector(`[data-shape-id="${s.id}"] div`);
+    if (div) div.focus();
+  } else if (s.type === 'stickynote') {
+    const div = document.querySelector(`[data-shape-id="${s.id}"] .sticky-fo div`);
+    if (div) div.focus();
+  }
+}
 function _doUndo() {
   const prev = history.undo(state.getShapes());
   if (prev) { state.setShapes(prev); renderer.render(); }
@@ -190,11 +202,12 @@ function _applyResize(id, dx, dy) {
     return;
   }
 
+  const MIN_SIZE = 2;
   let { x, y, width, height } = o;
-  if (_handle.includes('e')) width  += dx;
-  if (_handle.includes('s')) height += dy;
-  if (_handle.includes('w')) { x += dx; width  -= dx; }
-  if (_handle.includes('n')) { y += dy; height -= dy; }
+  if (_handle.includes('e')) width  = Math.max(MIN_SIZE, width  + dx);
+  if (_handle.includes('s')) height = Math.max(MIN_SIZE, height + dy);
+  if (_handle.includes('w')) { const nw = Math.max(MIN_SIZE, width  - dx); x += width  - nw; width  = nw; }
+  if (_handle.includes('n')) { const nh = Math.max(MIN_SIZE, height - dy); y += height - nh; height = nh; }
   state.updateShape(id, { x, y, width, height });
 }
 
