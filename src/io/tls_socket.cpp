@@ -143,7 +143,7 @@ SSL *TlsSocket::accept_connection_tls(sockaddr_storage &client_addr, socklen_t &
 	}
 
 	// Set non-blocking mode
-	SSL_set_connect_state(ssl);
+	SSL_set_accept_state(ssl);
 
 	return ssl;
 }

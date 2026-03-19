@@ -66,13 +66,24 @@ const ServerConfig* Router::selectServer(const std::string& host, const std::str
 			bool addr_matches = (server_addr == listen_addr) ||
 			                    (server_addr == ANY_ADDRESS) ||
 			                    (listen_addr == ANY_ADDRESS);
-								
+							
 			bool port_matches = (server_port == listen_port);
 
 			if (addr_matches && port_matches)
 			{
 				matches_listen = true;
 				break;
+			}
+		}
+
+		if (!matches_listen && !server.ssl_port.empty())
+		{
+			bool addr_matches = true;
+			bool port_matches = (server.ssl_port == listen_port);
+			
+			if (addr_matches && port_matches)
+			{
+				matches_listen = true;
 			}
 		}
 

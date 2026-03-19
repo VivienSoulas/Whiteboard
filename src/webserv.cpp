@@ -91,8 +91,8 @@ void Webserv::setupListeners()
 			try
 			{
 				TlsSocket *tls_socket = new TlsSocket(ssl_port, ssl_addr, ssl_ctx);
-				_connection_manager.addTlsListener(tls_socket, ssl_addr, ssl_port);
-				DEBUG_LOG("Added HTTPS listener on " << ssl_addr << ":" << ssl_port);
+_connection_manager.addTlsListener(tls_socket, ssl_addr, ssl_port);
+			DEBUG_LOG("Added HTTPS listener on " << ssl_addr << ":" << ssl_port);
 			}
 			catch (const std::exception &e)
 			{

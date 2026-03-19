@@ -19,16 +19,20 @@ CXX = c++
 CXXFLAGS = -std=c++11 -I$(INC_DIR)
 DEPFLAGS = -MMD -MP -MF $(DEP_DIR)/$*.d
 
-ifneq ($(STRICT), 0)
-	CXXFLAGS += -Wall -Wextra -Werror
-endif
-
 DEBUG ?= 0
 
 ifeq ($(DEBUG), 1)
 	CXXFLAGS += -g -DDEBUG=1
 else
 	CXXFLAGS += -O2
+endif
+
+STRICT ?= 1
+
+ifeq ($(STRICT), 1)
+	CXXFLAGS += -Wall -Wextra -Werror
+else
+	CXXFLAGS += -Wall -Wextra
 endif
 
 MAKEFLAGS += --no-print-directory
@@ -41,21 +45,15 @@ GREEN = \033[0;32m
 RED = \033[0;31m
 RESET = \033[0m
 
-.PHONY: all clean fclean re unchecked debug run help
+.PHONY: all clean fclean re debug run help
 
 all: $(OUT)
-
-unchecked:
-	@$(MAKE) all STRICT=0
 
 debug:
 	@$(MAKE) all DEBUG=1
 
 run: $(OUT)
-	@./$(OUT)
-
-test: $(OUT)
-	./assets/tester http://localhost:8082
+	@./$(OUT) config/default.conf
 
 $(NAME): $(OUT)
 
@@ -84,7 +82,6 @@ re: fclean all
 help:
 	@echo "Available targets:"
 	@echo "  all       - Build the project (default)"
-	@echo "  unchecked - Build without -Wall -Wextra -Werror"
 	@echo "  debug     - Build with debug symbols (-g)"
 	@echo "  run       - Build and run the executable"
 	@echo "  clean     - Remove object files"

@@ -158,6 +158,7 @@ void TlsConnection::writeData()
 				state = CLOSING;
 			else
 				state = READING;
+			read_buffer.clear();
 			write_buffer.clear();
 			bytes_written = 0;
 		}
