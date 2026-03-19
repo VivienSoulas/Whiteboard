@@ -41,7 +41,9 @@ namespace dir_utils
 							std::string resolved_str = std::string(resolved_path);
 							std::string resolved_dir_str = std::string(resolved_dir);
 							// Ensure the symlink target is within the directory
-							if (resolved_str.find(resolved_dir_str) != 0)
+							if (resolved_str.find(resolved_dir_str) != 0 || 
+							    (resolved_str.size() > resolved_dir_str.size() && 
+							     resolved_str[resolved_dir_str.size()] != '/'))
 							{
 								// Symlink escapes root, skip it
 								continue;

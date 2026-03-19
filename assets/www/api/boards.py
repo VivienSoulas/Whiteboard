@@ -110,7 +110,11 @@ def main():
             return
         path = board_path(name)
         if os.path.isfile(path):
-            os.remove(path)
+            try:
+                os.remove(path)
+            except OSError as e:
+                error('Failed to delete board: ' + str(e), '500 Internal Server Error')
+                return
         respond({'ok': True})
 
     else:

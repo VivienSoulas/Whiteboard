@@ -194,10 +194,13 @@ void ConnectionManager::pollConnections()
 						{
 							// Extract client IP and check per-IP limit
 							char client_ip[INET6_ADDRSTRLEN] = {0};
-							if (client_addr.ss_family == AF_INET)
-								inet_ntop(AF_INET, &((struct sockaddr_in *)&client_addr)->sin_addr, client_ip, sizeof(client_ip));
-							else if (client_addr.ss_family == AF_INET6)
-								inet_ntop(AF_INET6, &((struct sockaddr_in6 *)&client_addr)->sin6_addr, client_ip, sizeof(client_ip));
+						int inet_result = 0;
+						if (client_addr.ss_family == AF_INET)
+							inet_result = (inet_ntop(AF_INET, &((struct sockaddr_in *)&client_addr)->sin_addr, client_ip, sizeof(client_ip)) != NULL) ? 1 : 0;
+						else if (client_addr.ss_family == AF_INET6)
+							inet_result = (inet_ntop(AF_INET6, &((struct sockaddr_in6 *)&client_addr)->sin6_addr, client_ip, sizeof(client_ip)) != NULL) ? 1 : 0;
+						if (!inet_result)
+							continue;  // Skip if conversion failed
 
 						// Count connections from this IP
 						int ip_conn_count = 1;  // Count this incoming connection
@@ -208,10 +211,13 @@ void ConnectionManager::pollConnections()
 							if (getpeername(it->first, (struct sockaddr *)&existing_addr, &existing_addr_len) == 0)
 							{
 								char existing_ip[INET6_ADDRSTRLEN] = {0};
+								int inet_result_existing = 0;
 								if (existing_addr.ss_family == AF_INET)
-									inet_ntop(AF_INET, &((struct sockaddr_in *)&existing_addr)->sin_addr, existing_ip, sizeof(existing_ip));
+									inet_result_existing = (inet_ntop(AF_INET, &((struct sockaddr_in *)&existing_addr)->sin_addr, existing_ip, sizeof(existing_ip)) != NULL) ? 1 : 0;
 								else if (existing_addr.ss_family == AF_INET6)
-									inet_ntop(AF_INET6, &((struct sockaddr_in6 *)&existing_addr)->sin6_addr, existing_ip, sizeof(existing_ip));
+									inet_result_existing = (inet_ntop(AF_INET6, &((struct sockaddr_in6 *)&existing_addr)->sin6_addr, existing_ip, sizeof(existing_ip)) != NULL) ? 1 : 0;
+								if (!inet_result_existing)
+									continue;  // Skip if conversion failed
 								
 								if (std::string(existing_ip) == std::string(client_ip))
 									ip_conn_count++;
@@ -275,10 +281,13 @@ void ConnectionManager::pollConnections()
 						{
 							// Extract client IP and check per-IP limit
 							char client_ip[INET6_ADDRSTRLEN] = {0};
-							if (client_addr.ss_family == AF_INET)
-								inet_ntop(AF_INET, &((struct sockaddr_in *)&client_addr)->sin_addr, client_ip, sizeof(client_ip));
-							else if (client_addr.ss_family == AF_INET6)
-								inet_ntop(AF_INET6, &((struct sockaddr_in6 *)&client_addr)->sin6_addr, client_ip, sizeof(client_ip));
+						int inet_result = 0;
+						if (client_addr.ss_family == AF_INET)
+							inet_result = (inet_ntop(AF_INET, &((struct sockaddr_in *)&client_addr)->sin_addr, client_ip, sizeof(client_ip)) != NULL) ? 1 : 0;
+						else if (client_addr.ss_family == AF_INET6)
+							inet_result = (inet_ntop(AF_INET6, &((struct sockaddr_in6 *)&client_addr)->sin6_addr, client_ip, sizeof(client_ip)) != NULL) ? 1 : 0;
+						if (!inet_result)
+							continue;  // Skip if conversion failed
 
 						// Count connections from this IP (both regular and TLS)
 						int ip_conn_count = 1;  // Count this incoming connection
@@ -291,10 +300,13 @@ void ConnectionManager::pollConnections()
 							if (getpeername(it->first, (struct sockaddr *)&existing_addr, &existing_addr_len) == 0)
 							{
 								char existing_ip[INET6_ADDRSTRLEN] = {0};
+								int inet_result_existing = 0;
 								if (existing_addr.ss_family == AF_INET)
-									inet_ntop(AF_INET, &((struct sockaddr_in *)&existing_addr)->sin_addr, existing_ip, sizeof(existing_ip));
+									inet_result_existing = (inet_ntop(AF_INET, &((struct sockaddr_in *)&existing_addr)->sin_addr, existing_ip, sizeof(existing_ip)) != NULL) ? 1 : 0;
 								else if (existing_addr.ss_family == AF_INET6)
-									inet_ntop(AF_INET6, &((struct sockaddr_in6 *)&existing_addr)->sin6_addr, existing_ip, sizeof(existing_ip));
+									inet_result_existing = (inet_ntop(AF_INET6, &((struct sockaddr_in6 *)&existing_addr)->sin6_addr, existing_ip, sizeof(existing_ip)) != NULL) ? 1 : 0;
+								if (!inet_result_existing)
+									continue;  // Skip if conversion failed
 								
 								if (std::string(existing_ip) == std::string(client_ip))
 									ip_conn_count++;
@@ -309,10 +321,13 @@ void ConnectionManager::pollConnections()
 							if (getpeername(it->first, (struct sockaddr *)&existing_addr, &existing_addr_len) == 0)
 							{
 								char existing_ip[INET6_ADDRSTRLEN] = {0};
+								int inet_result_existing = 0;
 								if (existing_addr.ss_family == AF_INET)
-									inet_ntop(AF_INET, &((struct sockaddr_in *)&existing_addr)->sin_addr, existing_ip, sizeof(existing_ip));
+									inet_result_existing = (inet_ntop(AF_INET, &((struct sockaddr_in *)&existing_addr)->sin_addr, existing_ip, sizeof(existing_ip)) != NULL) ? 1 : 0;
 								else if (existing_addr.ss_family == AF_INET6)
-									inet_ntop(AF_INET6, &((struct sockaddr_in6 *)&existing_addr)->sin6_addr, existing_ip, sizeof(existing_ip));
+									inet_result_existing = (inet_ntop(AF_INET6, &((struct sockaddr_in6 *)&existing_addr)->sin6_addr, existing_ip, sizeof(existing_ip)) != NULL) ? 1 : 0;
+								if (!inet_result_existing)
+									continue;  // Skip if conversion failed
 								
 								if (std::string(existing_ip) == std::string(client_ip))
 									ip_conn_count++;

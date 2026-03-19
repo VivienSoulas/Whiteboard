@@ -47,6 +47,12 @@ SSLContext::SSLContext(const std::string &cert_path, const std::string &key_path
 	// Set SSL options for non-blocking I/O and disable weak TLS versions
 	SSL_CTX_set_options(_ctx, SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3 | SSL_OP_NO_TLSv1 | SSL_OP_NO_TLSv1_1);
 	SSL_CTX_set_mode(_ctx, SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER);
+
+	// Enforce minimum TLS 1.2
+	if (!SSL_CTX_set_min_proto_version(_ctx, TLS1_2_VERSION))
+	{
+		std::cerr << "Warning: Failed to set minimum TLS version to 1.2" << std::endl;
+	}
 }
 
 SSLContext::~SSLContext()

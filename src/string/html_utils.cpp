@@ -23,7 +23,7 @@ namespace html_utils
 		html << "<!DOCTYPE html><html><head><meta charset=\"utf-8\"><title>Upload</title></head><body><h1>Upload successful</h1><ul>";
 		for (size_t i = 0; i < filenames.size(); ++i)
 		{
-			html << "<li>" << filenames[i] << "</li>";
+			html << "<li>" << escapeHtml(filenames[i]) << "</li>";
 		}
 		html << "</ul></body></html>";
 		return html.str();

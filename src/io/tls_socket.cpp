@@ -1,5 +1,7 @@
 #include "io/tls_socket.hpp"
 #include "io/socket.hpp"
+#include "logger.hpp"
+#include <netinet/tcp.h>
 
 TlsSocket::TlsSocket(const std::string port, const std::string ip, SSL_CTX *ssl_ctx)
 	: fd(-1), ssl_ctx(ssl_ctx), is_tls(ssl_ctx != nullptr)
@@ -87,6 +89,12 @@ void TlsSocket::createSocket(struct addrinfo *result)
 			close(fd);
 			fd = -1;
 			continue;
+		}
+
+		// Disable Nagle's algorithm for TLS connections
+		if (setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, &opt, sizeof(opt)) == -1)
+		{
+			DEBUG_LOG("Warning: setsockopt(TCP_NODELAY) failed on TLS socket");
 		}
 
 		break;
