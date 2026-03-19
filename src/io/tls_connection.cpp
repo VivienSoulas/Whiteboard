@@ -92,13 +92,15 @@ std::string TlsConnection::readBuffer()
 		}
 	}
 
+	// Return only newly read bytes, not the full buffer
 	if (bytes_read > 0)
 	{
 		read_buffer.append(buffer, bytes_read);
 		setLastUpdate();
+		return std::string(buffer, bytes_read);
 	}
 
-	return read_buffer;
+	return "";
 }
 
 void TlsConnection::setWriteBuffer(std::string buffer)

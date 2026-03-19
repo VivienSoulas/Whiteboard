@@ -4,6 +4,6 @@
 #define SIGNAL_HANDLER_HPP
 
 void signalHandler(int signal);
-void signalHandler(int signal);
+void handleSigchld(int signal);
 
 #endif

@@ -14,6 +14,7 @@
 #include <limits.h>
 #include <iostream>
 #include <poll.h>
+#include <sys/resource.h>
 #include "logger.hpp"
 #include "io/utils.hpp"
 #include "webserv.hpp"
@@ -45,13 +46,21 @@ namespace cgi_handler
 
         int pipe_in[2];
         int pipe_out[2];
-        if (pipe(pipe_in) < 0 || pipe(pipe_out) < 0)
+        if (pipe(pipe_in) < 0)
             return HttpResponseFactory::buildError(req, HttpStatus::INTERNAL_SERVER_ERROR, true).serialize();
+        if (pipe(pipe_out) < 0)
+        {
+            close(pipe_in[0]);
+            close(pipe_in[1]);
+            return HttpResponseFactory::buildError(req, HttpStatus::INTERNAL_SERVER_ERROR, true).serialize();
+        }
 
-        alarm(30);  // 30-second timeout
+        // CGI timeout is now handled by the parent's poll loop (POLL_TIMEOUT);
+        // per-request timeout is enforced by monitoring pipe read timeout
         pid_t pid = fork();
         if (pid < 0)
         {
+            // Both pipes are properly closed on fork() failure
             close(pipe_in[0]); close(pipe_in[1]);
             close(pipe_out[0]); close(pipe_out[1]);
             return HttpResponseFactory::buildError(req, HttpStatus::INTERNAL_SERVER_ERROR, true).serialize();
@@ -70,9 +79,19 @@ namespace cgi_handler
             for (int sig = 1; sig < NSIG; sig++)
                 signal(sig, SIG_DFL);
 
-            // Close all inherited file descriptors
-            for (int i = 3; i < 256; i++)
-                close(i);
+            // Close all inherited file descriptors using getrlimit
+            struct rlimit rl;
+            if (getrlimit(RLIMIT_NOFILE, &rl) == 0)
+            {
+                for (int i = 3; i < (int)rl.rlim_max; i++)
+                    close(i);
+            }
+            else
+            {
+                // Fallback if getrlimit fails
+                for (int i = 3; i < 256; i++)
+                    close(i);
+            }
 
             std::vector<std::string> envs;
             envs.push_back("REQUEST_METHOD=" + httpMethodToString(req.method));
@@ -120,6 +139,8 @@ namespace cgi_handler
 
             char **envp = new char*[envs.size() + 1];
             for (size_t i = 0; i < envs.size(); ++i) {
+                // strdup() allocates memory for environment strings, but this leak is not practical
+                // because the child process's entire memory image is replaced by execve()
                 envp[i] = strdup(envs[i].c_str());
             }
             envp[envs.size()] = NULL;
@@ -131,7 +152,7 @@ namespace cgi_handler
                 bin_path = "/usr/bin/python3";
             else if (string_utils::endsWith(file_path, ".bla"))
             {
-                char cwd_buf[PATH_MAX];
+                char cwd_buf[PATH_MAX] = {};
                 if (getcwd(cwd_buf, sizeof(cwd_buf)))
                     bin_path = std::string(cwd_buf) + "/assets/cgi_tester";
                 else
@@ -140,12 +161,14 @@ namespace cgi_handler
             else
                 bin_path = file_path;
 
+            // Note: argv elements are strdup'd but memory is not freed because child process
+            // image is replaced by execve() - all process memory is reclaimed on exec
             char *argv[] = { strdup(bin_path.c_str()), strdup(file_path.c_str()), NULL };
             
             std::string dir = file_path;
             size_t dir_end = dir.find_last_of('/');
             if (dir_end != std::string::npos)
-			{
+            {
                 dir = dir.substr(0, dir_end);
                 if (chdir(dir.c_str()) != 0)
                 {
@@ -209,9 +232,24 @@ namespace cgi_handler
                     {
                         ssize_t n = ::write(pipe_in[1], body.data() + body_written, body.size() - body_written);
                         if (n > 0)
-                            body_written += n;
-                        else if (n < 0 && errno != EAGAIN && errno != EWOULDBLOCK)
                         {
+                            body_written += n;
+                            DEBUG_LOG("CGI pipe write: wrote " << n << " bytes");
+                        }
+                        else if (n == 0)
+                        {
+                            DEBUG_LOG("CGI pipe write: returned 0 bytes (error)");
+                            close(pipe_in[1]);
+                            pipe_in_closed = true;
+                        }
+                        else if (n < 0 && (errno == EAGAIN || errno == EWOULDBLOCK))
+                        {
+                            DEBUG_LOG("CGI pipe write: EAGAIN/EWOULDBLOCK, retrying");
+                            // Don't close, will retry on next poll
+                        }
+                        else if (n < 0)
+                        {
+                            DEBUG_LOG("CGI pipe write: error " << strerror(errno));
                             close(pipe_in[1]);
                             pipe_in_closed = true;
                         }
@@ -228,7 +266,6 @@ namespace cgi_handler
 
             int status;
             waitpid(pid, &status, 0);
-            alarm(0);  // Cancel alarm
 
             if (WIFEXITED(status) && WEXITSTATUS(status) != 0) {
                 DEBUG_LOG("Child exited with non-zero status: " << WEXITSTATUS(status));

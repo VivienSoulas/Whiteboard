@@ -18,7 +18,10 @@ namespace multipart_parser
 			{
 				std::string boundary = kv.second;
 				if (boundary.size() >= 2 && boundary[0] == '"' && boundary[boundary.size() - 1] == '"')
-					return boundary.substr(1, boundary.size() - 2);
+					boundary = boundary.substr(1, boundary.size() - 2);
+				// Boundary length validation
+				if (boundary.size() > 1024)
+					return "";  // Invalid boundary, return empty
 				return boundary;
 			}
 		}

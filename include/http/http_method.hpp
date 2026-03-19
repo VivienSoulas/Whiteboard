@@ -10,7 +10,9 @@ enum HttpMethod
 	GET,
 	POST,
 	DELETE,
-	HEAD
+	HEAD,
+	PUT,
+	PATCH
 };
 
 HttpMethod parseHttpMethod(const std::string &method_str);

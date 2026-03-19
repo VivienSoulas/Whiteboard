@@ -181,7 +181,7 @@ HttpParser::Result HttpParser::tryParsingHeaders()
 	buffer_.erase(0, headerEndPos_);
 	headerEndPos_ = 0;
 
-	if (request_.method == POST && (!hasContentLength_ && !isChunked_))
+	if ((request_.method == POST || request_.method == PUT || request_.method == PATCH) && (!hasContentLength_ && !isChunked_))
 		return setError(HttpStatus::LENGTH_REQUIRED, true);
 	if (hasContentLength_ || isChunked_)
 	{
@@ -255,6 +255,9 @@ HttpParser::Result HttpParser::tryParsingChunkedBody()
 				return setError(HttpStatus::BAD_REQUEST, true);
 
 			currentChunkSize_ = chunkSize;
+			// Per-chunk bounds checking: reject individual chunks over 100MB
+			if (currentChunkSize_ > 100*1024*1024)
+				return setError(HttpStatus::BAD_REQUEST, true);
 			buffer_.erase(0, lineEnd + 2);
 
 			if (currentChunkSize_ == 0)

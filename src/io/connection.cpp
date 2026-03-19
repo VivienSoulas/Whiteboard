@@ -79,8 +79,12 @@ void Connection::setWriteBuffer(std::string buffer)
 {
 	if (buffer.size() > MAX_WRITE_BUFFER)
 	{
-		DEBUG_LOG("Write buffer too large, closing connection");
-		state = CLOSING;
+		// Implement backpressure instead of immediately closing
+		// Pause reading to prevent further data accumulation
+		DEBUG_LOG("Write buffer approaching limit, implementing backpressure");
+		state = WRITTING;
+		write_buffer = buffer;
+		bytes_written = 0;
 		return;
 	}
 	if (buffer.empty())

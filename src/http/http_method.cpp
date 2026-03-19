@@ -14,6 +14,10 @@ HttpMethod parseHttpMethod(const std::string& method_str)
 		return DELETE;
 	else if (upper_method == "HEAD")
 		return HEAD;
+	else if (upper_method == "PUT")
+		return PUT;
+	else if (upper_method == "PATCH")
+		return PATCH;
 	else
 		return UNKNOWN;
 }
@@ -26,6 +30,8 @@ std::string httpMethodToString(HttpMethod m)
 		case POST:   return "POST";
 		case DELETE: return "DELETE";
 		case HEAD:   return "HEAD";
+		case PUT:    return "PUT";
+		case PATCH:  return "PATCH";
 		default:     return "UNKNOWN";
 	}
 }

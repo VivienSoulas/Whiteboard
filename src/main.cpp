@@ -9,6 +9,7 @@ int main(int argc, char *argv[])
 {
 	signal(SIGINT, signalHandler);
 	signal(SIGTERM, signalHandler);
+	signal(SIGCHLD, handleSigchld);
 	signal(SIGPIPE, SIG_IGN);
 
 	if (argc > 2)

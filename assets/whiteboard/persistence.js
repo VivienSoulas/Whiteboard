@@ -2,6 +2,7 @@ import * as state from './state.js';
 import * as viewport from './viewport.js';
 
 const BOARD_VERSION = 1;
+const KNOWN_TYPES = new Set(['rectangle', 'ellipse', 'line', 'arrow', 'pen', 'text', 'stickynote', 'connector']);
 
 // ── Local JSON save / load ────────────────────────────────────────────────────
 

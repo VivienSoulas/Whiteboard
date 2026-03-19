@@ -179,6 +179,16 @@ std::string Webserv::handleRequest(const HttpRequest &req, const std::string &li
 	// CGI execution based on file extension
 	if (!location->cgi_extension.empty() && string_utils::endsWith(req.path, location->cgi_extension))
 	{
+		// Check if CGI file exists and is accessible
+		std::string cgi_file_path = path_utils::resolveFilePath(location->root.empty() ? server->root : location->root, 
+                                                                location->root.empty() ? req.path : req.path.substr(location->path.length() == 1 ? 0 : location->path.length()));
+		if (cgi_file_path.empty() || access(cgi_file_path.c_str(), F_OK) != 0)
+		{
+			DEBUG_LOG("Final response: 404 Not Found (CGI file not found)");
+			HttpResponse res = HttpResponseFactory::buildError(req, HttpStatus::NOT_FOUND, true);
+			return res.serialize();
+		}
+		
 		DEBUG_LOG("Handing off request to CGI handler");
 		return cgi_handler::handle(*server, *location, req);
 	}

@@ -22,7 +22,11 @@
 #include <string>
 #include <ctime>
 #include <fcntl.h>
+#include <arpa/inet.h>
 #include "webserv.hpp"
+
+static const int MAX_CONNECTIONS = 1000;
+static const int MAX_CONNECTIONS_PER_IP = 50;
 
 ConnectionManager::~ConnectionManager()
 {
@@ -168,6 +172,18 @@ void ConnectionManager::pollConnections()
 				is_listener = true;
 				if (poll_fds[i].revents & POLLIN)
 				{
+					// Connection rate limiting
+					int total_connections = _connections.size() + _tls_connections.size();
+					if (total_connections >= MAX_CONNECTIONS)
+					{
+						DEBUG_LOG("Connection rejected: max connections (" << MAX_CONNECTIONS << ") reached");
+						sockaddr_storage client_addr;
+						socklen_t addr_len = sizeof(client_addr);
+						int client_fd = _listener_sockets[j]->accept_connection(client_addr, addr_len);
+						if (client_fd > 0) close(client_fd);
+						break;
+					}
+
 					std::map<int, std::pair<std::string, std::string> >::iterator lit = _listener_fd_to_addr_port.find(fd);
 					if (lit != _listener_fd_to_addr_port.end())
 					{
@@ -176,6 +192,32 @@ void ConnectionManager::pollConnections()
 						int client_fd = _listener_sockets[j]->accept_connection(client_addr, addr_len);
 						if (client_fd > 0)
 						{
+							// Extract client IP and check per-IP limit
+							char client_ip[INET6_ADDRSTRLEN] = {0};
+							if (client_addr.ss_family == AF_INET)
+								inet_ntop(AF_INET, &((struct sockaddr_in *)&client_addr)->sin_addr, client_ip, sizeof(client_ip));
+							else if (client_addr.ss_family == AF_INET6)
+								inet_ntop(AF_INET6, &((struct sockaddr_in6 *)&client_addr)->sin6_addr, client_ip, sizeof(client_ip));
+
+						// Count connections from this IP
+						int ip_conn_count = 1;  // Count this incoming connection
+						for (std::map<int, Connection *>::const_iterator it = _connections.begin(); it != _connections.end(); ++it)
+						{
+							sockaddr_storage existing_addr;
+							socklen_t existing_addr_len = sizeof(existing_addr);
+							if (getpeername(it->first, (struct sockaddr *)&existing_addr, &existing_addr_len) == 0)
+							{
+								char existing_ip[INET6_ADDRSTRLEN] = {0};
+								if (existing_addr.ss_family == AF_INET)
+									inet_ntop(AF_INET, &((struct sockaddr_in *)&existing_addr)->sin_addr, existing_ip, sizeof(existing_ip));
+								else if (existing_addr.ss_family == AF_INET6)
+									inet_ntop(AF_INET6, &((struct sockaddr_in6 *)&existing_addr)->sin6_addr, existing_ip, sizeof(existing_ip));
+								
+								if (std::string(existing_ip) == std::string(client_ip))
+									ip_conn_count++;
+							}
+						}
+
 							try
 							{
 								makeNonBlocking(client_fd);
@@ -185,7 +227,7 @@ void ConnectionManager::pollConnections()
 								const ServerConfig *server = _router.getServerForListen(lit->second.first, lit->second.second);
 								if (server && server->max_body_size > 0)
 									_parsers[client_fd].setMaxBodyBytes(server->max_body_size);
-								DEBUG_LOG("New connection [fd: " << client_fd << "] (default server: " << (server ? server->server_name : "none") << ")");
+								DEBUG_LOG("New connection [fd: " << client_fd << "] from " << client_ip << " (default server: " << (server ? server->server_name : "none") << ")");
 							}
 							catch (const std::exception &e)
 							{
@@ -211,6 +253,18 @@ void ConnectionManager::pollConnections()
 				is_listener = true;
 				if (poll_fds[i].revents & POLLIN)
 				{
+					// Connection rate limiting
+					int total_connections = _connections.size() + _tls_connections.size();
+					if (total_connections >= MAX_CONNECTIONS)
+					{
+						DEBUG_LOG("TLS connection rejected: max connections (" << MAX_CONNECTIONS << ") reached");
+						sockaddr_storage client_addr;
+						socklen_t addr_len = sizeof(client_addr);
+						SSL *ssl = _tls_listener_sockets[j]->accept_connection_tls(client_addr, addr_len);
+						if (ssl) SSL_free(ssl);
+						break;
+					}
+
 					std::map<int, std::pair<std::string, std::string> >::iterator lit = _tls_listener_fd_to_addr_port.find(fd);
 					if (lit != _tls_listener_fd_to_addr_port.end())
 					{
@@ -219,9 +273,55 @@ void ConnectionManager::pollConnections()
 						SSL *ssl = _tls_listener_sockets[j]->accept_connection_tls(client_addr, addr_len);
 					if (ssl)
 						{
+							// Extract client IP and check per-IP limit
+							char client_ip[INET6_ADDRSTRLEN] = {0};
+							if (client_addr.ss_family == AF_INET)
+								inet_ntop(AF_INET, &((struct sockaddr_in *)&client_addr)->sin_addr, client_ip, sizeof(client_ip));
+							else if (client_addr.ss_family == AF_INET6)
+								inet_ntop(AF_INET6, &((struct sockaddr_in6 *)&client_addr)->sin6_addr, client_ip, sizeof(client_ip));
+
+						// Count connections from this IP (both regular and TLS)
+						int ip_conn_count = 1;  // Count this incoming connection
+						
+						// Count from regular connections
+						for (std::map<int, Connection *>::const_iterator it = _connections.begin(); it != _connections.end(); ++it)
+						{
+							sockaddr_storage existing_addr;
+							socklen_t existing_addr_len = sizeof(existing_addr);
+							if (getpeername(it->first, (struct sockaddr *)&existing_addr, &existing_addr_len) == 0)
+							{
+								char existing_ip[INET6_ADDRSTRLEN] = {0};
+								if (existing_addr.ss_family == AF_INET)
+									inet_ntop(AF_INET, &((struct sockaddr_in *)&existing_addr)->sin_addr, existing_ip, sizeof(existing_ip));
+								else if (existing_addr.ss_family == AF_INET6)
+									inet_ntop(AF_INET6, &((struct sockaddr_in6 *)&existing_addr)->sin6_addr, existing_ip, sizeof(existing_ip));
+								
+								if (std::string(existing_ip) == std::string(client_ip))
+									ip_conn_count++;
+							}
+						}
+						
+						// Count from TLS connections
+						for (std::map<int, TlsConnection *>::const_iterator it = _tls_connections.begin(); it != _tls_connections.end(); ++it)
+						{
+							sockaddr_storage existing_addr;
+							socklen_t existing_addr_len = sizeof(existing_addr);
+							if (getpeername(it->first, (struct sockaddr *)&existing_addr, &existing_addr_len) == 0)
+							{
+								char existing_ip[INET6_ADDRSTRLEN] = {0};
+								if (existing_addr.ss_family == AF_INET)
+									inet_ntop(AF_INET, &((struct sockaddr_in *)&existing_addr)->sin_addr, existing_ip, sizeof(existing_ip));
+								else if (existing_addr.ss_family == AF_INET6)
+									inet_ntop(AF_INET6, &((struct sockaddr_in6 *)&existing_addr)->sin6_addr, existing_ip, sizeof(existing_ip));
+								
+								if (std::string(existing_ip) == std::string(client_ip))
+									ip_conn_count++;
+							}
+						}
+
 							// Get the actual client fd from the ssl connection
 							int client_fd = SSL_get_fd(ssl);
-							if (client_fd > 0)
+						if (client_fd != -1)
 							{
 								try
 								{
@@ -232,7 +332,7 @@ void ConnectionManager::pollConnections()
 									const ServerConfig *server = _router.getServerForListen(lit->second.first, lit->second.second);
 									if (server && server->max_body_size > 0)
 										_parsers[client_fd].setMaxBodyBytes(server->max_body_size);
-									DEBUG_LOG("New TLS connection [fd: " << client_fd << "] (default server: " << (server ? server->server_name : "none") << ")");
+									DEBUG_LOG("New TLS connection [fd: " << client_fd << "] from " << client_ip << " (default server: " << (server ? server->server_name : "none") << ")");
 								}
 								catch (const std::exception &e)
 								{

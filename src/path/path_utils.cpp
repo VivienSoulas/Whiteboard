@@ -29,7 +29,11 @@ namespace path_utils
 				i += 3;
 				size_t pos = result.rfind('/');
 				if (pos != std::string::npos && pos > 0)
+				{
 					result.resize(pos);
+					if (!result.empty() && result[result.size()-1] != '/')
+						result += '/';
+				}
 				else
 					result.clear();
 				continue;
@@ -122,7 +126,7 @@ namespace path_utils
 			}
 			else
 			{
-				char cwd[PATH_MAX];
+				char cwd[PATH_MAX] = {0};  // Zero-initialize buffer
 				if (getcwd(cwd, sizeof(cwd)))
 					path = std::string(cwd) + "/" + path;
 				else
