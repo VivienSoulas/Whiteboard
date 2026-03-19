@@ -7,3 +7,7 @@
 
 # Build directories
 out/
+
+# private keys
+key.pem
+cert.pem
