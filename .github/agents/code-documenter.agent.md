@@ -1,6 +1,6 @@
 ---
 name: "Code Documenter"
-description: "Use when I ask you"
+description: "Documentation specialist. Use to write or update README, architecture docs, usage guides, and inline technical explanations from implemented behavior."
 tools: [read, search, edit]
 argument-hint: "Describe the documentation you want created or improved."
 agents: []

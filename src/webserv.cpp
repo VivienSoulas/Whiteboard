@@ -6,6 +6,8 @@
 #include "http/upload_handler.hpp"
 #include "http/cgi_handler.hpp"
 #include "io/connection_manager.hpp"
+#include "io/ssl_context.hpp"
+#include "io/tls_socket.hpp"
 #include <dirent.h>
 #include <algorithm>
 #include <unistd.h>
@@ -15,12 +17,16 @@
 #include "main.hpp"
 #include "logger.hpp"
 
+// Static member initialization
+SSLContextManager Webserv::_ssl_manager;
+
 Webserv::Webserv(const std::string &config_path)
 	: _config_file(config_path),
 	  _router(_config_file.getConfig()),
 	  _connection_manager(_router, std::bind(&Webserv::handleRequest, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3))
 {
 	DEBUG_LOG("Webserv initialized with config file: " << config_path);
+	SSLContextManager::initializeSSL();
 	_config_file.getConfig().print();
 	setupListeners();
 }
@@ -41,6 +47,7 @@ void Webserv::setupListeners()
 
 	for (std::vector<ServerConfig>::const_iterator s = servers.begin(); s != servers.end(); ++s)
 	{
+		// Setup regular HTTP listeners
 		for (size_t i = 0; i < s->listen.size(); ++i)
 		{
 			const std::string &addr = s->listen[i].first;
@@ -50,6 +57,47 @@ void Webserv::setupListeners()
 				continue;
 			seen.insert(key);
 			_connection_manager.addListener(new Socket(port, addr), addr, port);
+			DEBUG_LOG("Added HTTP listener on " << addr << ":" << port);
+		}
+
+		// Setup HTTPS listeners if SSL is enabled
+		if (s->ssl_enabled && !s->ssl_certificate_path.empty() && !s->ssl_certificate_key_path.empty())
+		{
+			std::string ssl_port = s->ssl_port;
+			if (ssl_port.empty())
+				ssl_port = "443";
+
+			std::string ssl_addr = "0.0.0.0";
+			for (size_t i = 0; i < s->listen.size(); ++i)
+			{
+				ssl_addr = s->listen[i].first;
+				break;
+			}
+
+			std::string context_id = ssl_addr + ":" + ssl_port;
+			if (!_ssl_manager.createContext(context_id, s->ssl_certificate_path, s->ssl_certificate_key_path))
+			{
+				std::cerr << "Failed to create SSL context for " << context_id << std::endl;
+				continue;
+			}
+
+			SSL_CTX *ssl_ctx = _ssl_manager.getContext(context_id);
+			if (!ssl_ctx)
+			{
+				std::cerr << "Failed to retrieve SSL context for " << context_id << std::endl;
+				continue;
+			}
+
+			try
+			{
+				TlsSocket *tls_socket = new TlsSocket(ssl_port, ssl_addr, ssl_ctx);
+				_connection_manager.addTlsListener(tls_socket, ssl_addr, ssl_port);
+				DEBUG_LOG("Added HTTPS listener on " << ssl_addr << ":" << ssl_port);
+			}
+			catch (const std::exception &e)
+			{
+				std::cerr << "Failed to create HTTPS listener: " << e.what() << std::endl;
+			}
 		}
 	}
 }

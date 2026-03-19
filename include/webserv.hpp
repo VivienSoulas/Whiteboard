@@ -7,6 +7,8 @@
 #include "config/location/location_config.hpp"
 #include "io/socket.hpp"
 #include "io/connection_manager.hpp"
+#include "io/ssl_context.hpp"
+#include "io/tls_socket.hpp"
 #include "http/http_parser.hpp"
 #include "http/http_request.hpp"
 #include "http/http_response.hpp"
@@ -38,6 +40,7 @@ public:
 	void accept();
 
 private:
+	static SSLContextManager _ssl_manager;
 	ConfigFile _config_file;
 	Router _router;
 	ConnectionManager _connection_manager;

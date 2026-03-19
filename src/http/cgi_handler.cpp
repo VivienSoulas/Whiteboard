@@ -4,6 +4,7 @@
 #include "path/path_utils.hpp"
 #include <unistd.h>
 #include <sys/wait.h>
+#include <signal.h>
 #include <cstdlib>
 #include <cstring>
 #include <vector>
@@ -47,6 +48,7 @@ namespace cgi_handler
         if (pipe(pipe_in) < 0 || pipe(pipe_out) < 0)
             return HttpResponseFactory::buildError(req, HttpStatus::INTERNAL_SERVER_ERROR, true).serialize();
 
+        alarm(30);  // 30-second timeout
         pid_t pid = fork();
         if (pid < 0)
         {
@@ -63,6 +65,14 @@ namespace cgi_handler
             dup2(pipe_out[1], STDOUT_FILENO);
             close(pipe_in[0]);
             close(pipe_out[1]);
+
+            // Reset all signals to default
+            for (int sig = 1; sig < NSIG; sig++)
+                signal(sig, SIG_DFL);
+
+            // Close all inherited file descriptors
+            for (int i = 3; i < 256; i++)
+                close(i);
 
             std::vector<std::string> envs;
             envs.push_back("REQUEST_METHOD=" + httpMethodToString(req.method));
@@ -218,6 +228,7 @@ namespace cgi_handler
 
             int status;
             waitpid(pid, &status, 0);
+            alarm(0);  // Cancel alarm
 
             if (WIFEXITED(status) && WEXITSTATUS(status) != 0) {
                 DEBUG_LOG("Child exited with non-zero status: " << WEXITSTATUS(status));

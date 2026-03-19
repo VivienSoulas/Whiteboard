@@ -18,6 +18,12 @@ public:
 	std::map<int, std::string> error_pages;
 	std::string root;
 	std::vector<LocationConfig> locations;
+
+	// SSL/TLS configuration
+	bool ssl_enabled;
+	std::string ssl_certificate_path;
+	std::string ssl_certificate_key_path;
+	std::string ssl_port;
 };
 
 #endif

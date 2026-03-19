@@ -1,6 +1,8 @@
-#ifndef CONNECTION_HPP
-#define CONNECTION_HPP
+#ifndef TLS_CONNECTION_HPP
+#define TLS_CONNECTION_HPP
 
+#include "io/connection.hpp"
+#include <openssl/ssl.h>
 #include <string>
 #include <sys/socket.h>
 #include <ctime>
@@ -14,16 +16,7 @@
 #define CONNECTION_TIMEOUT 120 // 120 seconds (for connection timeout check)
 #endif
 
-enum State
-{
-	READING,
-	WRITTING,
-	CLOSING,
-	TLS_HANDSHAKE_READING,
-	TLS_HANDSHAKE_WRITING
-};
-
-class Connection
+class TlsConnection
 {
 private:
 	int fd;
@@ -37,13 +30,17 @@ private:
 	bool close_after_write;
 	std::string listen_addr;
 	std::string listen_port;
+	SSL *ssl;
+	bool is_tls;
+	bool handshake_complete;
 
 public:
-	Connection(int fd, sockaddr_storage &client_addr, socklen_t &addr_len,
-			   const std::string &listen_addr, const std::string &listen_port);
-	Connection(const Connection &other) = delete;
-	~Connection();
-	Connection &operator=(const Connection &other) = delete;
+	TlsConnection(int fd, sockaddr_storage &client_addr, socklen_t &addr_len,
+				  const std::string &listen_addr, const std::string &listen_port,
+				  SSL *ssl = nullptr);
+	TlsConnection(const TlsConnection &other) = delete;
+	~TlsConnection();
+	TlsConnection &operator=(const TlsConnection &other) = delete;
 
 	int getFd() const;
 	State getState();
@@ -58,9 +55,15 @@ public:
 	void writeData();
 
 	const std::string &getReadBuffer() const;
-
 	const std::string &getListenAddr() const;
 	const std::string &getListenPort() const;
+
+	bool isTLS() const;
+	bool isHandshakeComplete() const;
+	void setHandshakeComplete(bool complete);
+	SSL *getSSL() const;
+
+	int performHandshake();
 };
 
-#endif
+#endif // TLS_CONNECTION_HPP

@@ -90,17 +90,26 @@ namespace upload_handler
 				if (filename.empty())
 					filename = "uploaded";
 				std::string path = path_utils::normalizeAndMakeAbsolute(upload_dir, filename);
-				std::ofstream out(path.c_str(), std::ios::binary);
+				std::string temp_path = path + ".tmp";
+				std::ofstream out(temp_path.c_str(), std::ios::binary);
 				if (out)
 				{
 					out.write(body.data() + content_start, content_end - content_start);
 					out.close();
+					if (rename(temp_path.c_str(), path.c_str()) == 0)
+					{
 					DEBUG_LOG("Saved uploaded file to: " << path << " (" << (content_end - content_start) << " bytes)");
 					saved_names.push_back(filename);
+					}
+					else
+					{
+						unlink(temp_path.c_str());
+						DEBUG_LOG("Failed to rename temp file to final path");
+					}
 				}
 				else
 				{
-					DEBUG_LOG("Failed to open file for writing: " << path);
+					DEBUG_LOG("Failed to open temp file for writing: " << temp_path);
 				}
 			}
 			pos = (next == 0) ? content_end : next + delim.size();

@@ -70,6 +70,15 @@ HttpParser::Result HttpParser::feed(const char *data, std::size_t len)
 
 	while (true)
 	{
+		// Check body size during streaming before appending more data
+		if (state_ == READING_BODY)
+		{
+			if (request_.body.size() > maxBodyBytes_)
+			{
+				return setError(HttpStatus::PAYLOAD_TOO_LARGE, true);
+			}
+		}
+
 		State prevState = state_;
 		std::size_t prevSize = buffer_.size();
 

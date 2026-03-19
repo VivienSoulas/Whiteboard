@@ -1,6 +1,7 @@
 #include "config/config_parser.hpp"
 #include "http/http_method.hpp"
 #include "logger.hpp"
+#include <fstream>
 
 ConfigParser::ConfigParser(const std::string& content) : StringParser(content)
 {
@@ -201,6 +202,22 @@ void ConfigParser::parseServerBlock(ServerConfig& server)
 		{
 			this->parseLocationBlock(server);
 		}
+		else if (this->expectToken("ssl_certificate"))
+		{
+			server.ssl_certificate_path = this->parseString();
+			server.ssl_enabled = true;
+			this->skipSemicolon();
+		}
+		else if (this->expectToken("ssl_certificate_key"))
+		{
+			server.ssl_certificate_key_path = this->parseString();
+			this->skipSemicolon();
+		}
+		else if (this->expectToken("ssl_port"))
+		{
+			server.ssl_port = this->parseString();
+			this->skipSemicolon();
+		}
 		else
 		{
 			std::string directive = this->peekToken().value;
@@ -213,5 +230,42 @@ void ConfigParser::parseServerBlock(ServerConfig& server)
 	if (server.listen.empty())
 	{
 		throw std::runtime_error(this->formatError("Server block must have at least one 'listen' directive"));
+	}
+
+	// Validate SSL configuration if enabled
+	if (server.ssl_enabled)
+	{
+		if (server.ssl_certificate_path.empty())
+		{
+			throw std::runtime_error(this->formatError("ssl_certificate not specified but SSL is enabled"));
+		}
+		if (server.ssl_certificate_key_path.empty())
+		{
+			throw std::runtime_error(this->formatError("ssl_certificate_key not specified but SSL is enabled"));
+		}
+
+		// Check if certificate file exists
+		std::ifstream cert_file(server.ssl_certificate_path.c_str());
+		if (!cert_file.good())
+		{
+			throw std::runtime_error(this->formatError("ssl_certificate file not found: " + server.ssl_certificate_path));
+		}
+
+		// Check if key file exists
+		std::ifstream key_file(server.ssl_certificate_key_path.c_str());
+		if (!key_file.good())
+		{
+			throw std::runtime_error(this->formatError("ssl_certificate_key file not found: " + server.ssl_certificate_key_path));
+		}
+	}
+
+	// Validate root directory
+	if (!server.root.empty())
+	{
+		std::ifstream root_check(server.root.c_str());
+		if (!root_check.good())
+		{
+			throw std::runtime_error(this->formatError("root directory not found: " + server.root));
+		}
 	}
 }

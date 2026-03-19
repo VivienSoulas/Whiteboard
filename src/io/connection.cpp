@@ -2,6 +2,8 @@
 #include "logger.hpp"
 #include <cstring>
 
+#define MAX_WRITE_BUFFER (10 * 1024 * 1024)  // 10MB
+
 Connection::Connection(int fd, sockaddr_storage &client_addr, socklen_t &addr_len,
 					   const std::string &listen_addr, const std::string &listen_port)
 	: fd(fd), client_addr(client_addr), addr_len(addr_len), state(READING), bytes_written(0),
@@ -9,35 +11,10 @@ Connection::Connection(int fd, sockaddr_storage &client_addr, socklen_t &addr_le
 {
 }
 
-Connection::Connection(const Connection &other)
-	: fd(other.fd), client_addr(other.client_addr), addr_len(other.addr_len), state(other.state),
-	  read_buffer(other.read_buffer), write_buffer(other.write_buffer), bytes_written(other.bytes_written),
-	  last_update(other.last_update), close_after_write(other.close_after_write), listen_addr(other.listen_addr), listen_port(other.listen_port)
-{
-}
-
 Connection::~Connection()
 {
 	if (fd > 0)
 		close(fd);
-}
-
-Connection &Connection::operator=(const Connection &other)
-{
-	if (this != &other)
-	{
-		fd = other.fd;
-		client_addr = other.client_addr;
-		addr_len = other.addr_len;
-		state = other.state;
-		read_buffer = other.read_buffer;
-		write_buffer = other.write_buffer;
-		bytes_written = other.bytes_written;
-		last_update = other.last_update;
-		listen_addr = other.listen_addr;
-		listen_port = other.listen_port;
-	}
-	return (*this);
 }
 
 int Connection::getFd() const
@@ -80,7 +57,11 @@ std::string Connection::readBuffer()
 	if (bytes_received > 0)
 	{
 		DEBUG_LOG("Connection [fd: " << fd << "] read " << bytes_received << " bytes");
-		read_buffer.append(temp, bytes_received);
+		if (bytes_received > 0)
+		{
+			read_buffer.reserve(read_buffer.size() + (BUFFER * 2));
+			read_buffer.append(temp, bytes_received);
+		}
 		return std::string(temp, bytes_received);
 	}
 	else
@@ -96,6 +77,12 @@ std::string Connection::readBuffer()
 
 void Connection::setWriteBuffer(std::string buffer)
 {
+	if (buffer.size() > MAX_WRITE_BUFFER)
+	{
+		DEBUG_LOG("Write buffer too large, closing connection");
+		state = CLOSING;
+		return;
+	}
 	if (buffer.empty())
 		setState(READING);
 

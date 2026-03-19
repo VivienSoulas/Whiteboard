@@ -8,6 +8,7 @@ namespace html_utils
 {
 	std::string buildDirectoryListing(const std::string &path, const std::vector<std::string> &entries);
 	std::string buildUploadSuccess(const std::vector<std::string> &filenames);
+	std::string escapeHtml(const std::string &str);
 }
 
 #endif // HTML_UTILS_HPP

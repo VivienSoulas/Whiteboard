@@ -163,6 +163,12 @@ std::string HttpResponse::serialize() const
 		h["connection"].push_back("close");
 	}
 
+	// For HTTP/1.0, always set Connection: close if not already present
+	if (version_ == HTTP_1_0 && h.find("connection") == h.end())
+	{
+		h["connection"].push_back("close");
+	}
+
 	for (HeaderMap::const_iterator it = h.begin(); it != h.end(); ++it)
 	{
 		for (std::vector<std::string>::const_iterator v = it->second.begin();

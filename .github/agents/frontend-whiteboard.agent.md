@@ -1,5 +1,5 @@
 ---
-description: "Use when I ask you"
+description: "Frontend whiteboard specialist. Use for UI, UX, canvas tools, interactions, rendering behavior, and styling work in assets/whiteboard."
 name: "Frontend Whiteboard"
 tools: [read, search, edit, execute]
 argument-hint: "Describe the frontend feature, bug, or UX change to make."

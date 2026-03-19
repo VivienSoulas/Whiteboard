@@ -5,7 +5,7 @@ SRCS = main webserv router config/server/server_config config/config_file config
 	   http/multipart/multipart_parser http/http_method io/connection io/socket \
 	   http/http_parser http/http_response http/http_response_factory signal/signal_handler \
 	   http/static_file_handler http/upload_handler http/cgi_handler string/html_utils \
-	   string/string_utils path/dir_utils io/utils io/connection_manager
+	   string/string_utils path/dir_utils io/utils io/connection_manager io/ssl_context io/tls_socket io/tls_connection
 
 SRC_DIR = src
 INC_DIR = include
@@ -60,7 +60,7 @@ test: $(OUT)
 $(NAME): $(OUT)
 
 $(OUT): $(OBJS)
-	@$(CXX) $(CXXFLAGS) $(OBJS) -o $(OUT)
+	@$(CXX) $(CXXFLAGS) $(OBJS) -o $(OUT) -lssl -lcrypto
 	@printf "$(NAME): $(GREEN)compiled executable to $(OUT)$(RESET)\n"
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp | $(DIRS)
