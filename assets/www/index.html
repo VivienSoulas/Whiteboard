@@ -1,10 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Whiteboard</title>
+	<title>Webserver</title>
 	<style>
 		:root {
 			--bg: #f4efe6;
@@ -16,47 +15,35 @@
 			--line: rgba(23, 33, 43, 0.12);
 			--shadow: 0 24px 60px rgba(23, 33, 43, 0.14);
 		}
-
-		* {
-			box-sizing: border-box;
-		}
-
+		* { box-sizing: border-box; }
 		body {
 			font-family: Georgia, "Times New Roman", serif;
 			line-height: 1.6;
 			color: var(--ink);
 			margin: 0;
 			min-height: 100vh;
-			background:
-				radial-gradient(circle at top left, rgba(15, 118, 110, 0.16), transparent 28%),
-				linear-gradient(135deg, #f7f1e8 0%, #efe4d3 52%, #e7dcc8 100%);
+			background: radial-gradient(circle at top left, rgba(15, 118, 110, 0.16), transparent 28%), linear-gradient(135deg, #f7f1e8 0%, #efe4d3 52%, #e7dcc8 100%);
 		}
-
 		body::before {
 			content: "";
 			position: fixed;
 			inset: 0;
-			background-image:
-				linear-gradient(rgba(23, 33, 43, 0.03) 1px, transparent 1px),
-				linear-gradient(90deg, rgba(23, 33, 43, 0.03) 1px, transparent 1px);
+			background-image: linear-gradient(rgba(23, 33, 43, 0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(23, 33, 43, 0.03) 1px, transparent 1px);
 			background-size: 36px 36px;
 			pointer-events: none;
 		}
-
 		main {
 			position: relative;
 			max-width: 1100px;
 			margin: 0 auto;
 			padding: 48px 24px 64px;
 		}
-
 		.hero {
 			display: grid;
 			grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.9fr);
 			gap: 28px;
 			align-items: stretch;
 		}
-
 		.panel {
 			background: var(--paper);
 			backdrop-filter: blur(8px);
@@ -64,11 +51,7 @@
 			border-radius: 28px;
 			box-shadow: var(--shadow);
 		}
-
-		.hero-copy {
-			padding: 48px;
-		}
-
+		.hero-copy { padding: 48px; }
 		.eyebrow {
 			display: inline-flex;
 			align-items: center;
@@ -81,7 +64,6 @@
 			letter-spacing: 0.08em;
 			text-transform: uppercase;
 		}
-
 		h1 {
 			margin: 22px 0 18px;
 			font-size: clamp(3rem, 6vw, 5.6rem);
@@ -89,21 +71,18 @@
 			letter-spacing: -0.05em;
 			font-weight: 700;
 		}
-
 		.lead {
 			max-width: 34rem;
 			font-size: 1.12rem;
 			color: var(--muted);
 			margin: 0 0 32px;
 		}
-
 		.actions {
 			display: flex;
 			flex-wrap: wrap;
 			gap: 14px;
 			margin-bottom: 36px;
 		}
-
 		.btn {
 			display: inline-flex;
 			align-items: center;
@@ -116,31 +95,19 @@
 			letter-spacing: 0.01em;
 			transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
 		}
-
 		.btn-primary {
 			background: var(--accent);
 			color: #fff;
 			box-shadow: 0 14px 30px rgba(15, 118, 110, 0.25);
 		}
-
 		.btn-secondary {
 			background: rgba(255, 255, 255, 0.72);
 			color: var(--ink);
 			border: 1px solid var(--line);
 		}
-
-		.btn:hover {
-			transform: translateY(-2px);
-		}
-
-		.btn-primary:hover {
-			background: var(--accent-dark);
-		}
-
-		.btn-secondary:hover {
-			background: rgba(255, 255, 255, 0.95);
-		}
-
+		.btn:hover { transform: translateY(-2px); }
+		.btn-primary:hover { background: var(--accent-dark); }
+		.btn-secondary:hover { background: rgba(255, 255, 255, 0.95); }
 		.notes {
 			display: flex;
 			flex-wrap: wrap;
@@ -148,26 +115,20 @@
 			color: var(--muted);
 			font-size: 0.92rem;
 		}
-
 		.notes span {
 			padding: 8px 12px;
 			border-radius: 999px;
 			background: rgba(255, 255, 255, 0.62);
 			border: 1px solid var(--line);
 		}
-
 		.preview {
 			position: relative;
 			overflow: hidden;
 			padding: 28px;
 			min-height: 520px;
-			background:
-				linear-gradient(160deg, rgba(255, 255, 255, 0.72), rgba(243, 235, 223, 0.92)),
-				linear-gradient(0deg, rgba(23, 33, 43, 0.04) 1px, transparent 1px),
-				linear-gradient(90deg, rgba(23, 33, 43, 0.04) 1px, transparent 1px);
+			background: linear-gradient(160deg, rgba(255, 255, 255, 0.72), rgba(243, 235, 223, 0.92)), linear-gradient(0deg, rgba(23, 33, 43, 0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(23, 33, 43, 0.04) 1px, transparent 1px);
 			background-size: auto, 36px 36px, 36px 36px;
 		}
-
 		.preview::after {
 			content: "";
 			position: absolute;
@@ -176,20 +137,17 @@
 			border-radius: 22px;
 			pointer-events: none;
 		}
-
 		.preview svg {
 			width: 100%;
 			height: 100%;
 			min-height: 460px;
 		}
-
 		.summary {
 			display: grid;
 			grid-template-columns: repeat(3, minmax(0, 1fr));
 			gap: 18px;
 			margin-top: 24px;
 		}
-
 		.summary-card {
 			padding: 22px;
 			border-radius: 22px;
@@ -197,66 +155,35 @@
 			border: 1px solid var(--line);
 			box-shadow: 0 10px 25px rgba(23, 33, 43, 0.07);
 		}
-
 		.summary-card h2 {
 			margin: 0 0 8px;
 			font-size: 1.1rem;
 		}
-
 		.summary-card p {
 			margin: 0;
 			color: var(--muted);
 			font-size: 0.95rem;
 		}
-
 		footer {
 			margin-top: 22px;
 			text-align: center;
 			color: var(--muted);
 			font-size: 0.9rem;
 		}
-
 		@media (max-width: 920px) {
-			main {
-				padding: 28px 16px 40px;
-			}
-
-			.hero {
-				grid-template-columns: 1fr;
-			}
-
-			.hero-copy,
-			.preview {
-				padding: 28px;
-			}
-
-			.summary {
-				grid-template-columns: 1fr;
-			}
+			main { padding: 28px 16px 40px; }
+			.hero { grid-template-columns: 1fr; }
+			.hero-copy, .preview { padding: 28px; }
+			.summary { grid-template-columns: 1fr; }
 		}
-
 		@media (max-width: 560px) {
-			h1 {
-				font-size: 2.7rem;
-			}
-
-			.lead {
-				font-size: 1rem;
-			}
-
-			.hero-copy,
-			.preview {
-				padding: 22px;
-				border-radius: 24px;
-			}
-
-			.preview svg {
-				min-height: 320px;
-			}
+			h1 { font-size: 2.7rem; }
+			.lead { font-size: 1rem; }
+			.hero-copy, .preview { padding: 22px; border-radius: 24px; }
+			.preview svg { min-height: 320px; }
 		}
 	</style>
 </head>
-
 <body>
 	<main>
 		<section class="hero">
@@ -274,7 +201,6 @@
 					<span>Built for direct editing</span>
 				</div>
 			</div>
-
 			<div class="panel preview" aria-hidden="true">
 				<svg viewBox="0 0 520 420" xmlns="http://www.w3.org/2000/svg">
 					<rect x="54" y="58" width="164" height="108" rx="20" fill="rgba(15, 118, 110, 0.10)" stroke="#0f766e" stroke-width="4" />
@@ -290,7 +216,6 @@
 				</svg>
 			</div>
 		</section>
-
 		<section class="summary">
 			<article class="summary-card">
 				<h2>Direct Start</h2>
@@ -305,7 +230,6 @@
 				<p>Work with shapes, text, connectors, and freehand strokes in a space designed for fast drafting and refinement.</p>
 			</article>
 		</section>
-
 		<footer>Open the canvas and keep working.</footer>
 	</main>
 </body>

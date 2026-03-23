@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Webserver Dashboard</title>
+	<style>
+		:root {
+			--bg: #f4efe6;
+			--paper: rgba(255, 252, 247, 0.88);
+			--ink: #17212b;
+			--muted: #5b6773;
+			--accent: #0f766e;
+			--accent-dark: #0b5d57;
+			--line: rgba(23, 33, 43, 0.12);
+			--shadow: 0 24px 60px rgba(23, 33, 43, 0.14);
+			--success: #059669;
+		}
+
+		* {
+			box-sizing: border-box;
+		}
+
+		body {
+			font-family: Georgia, "Times New Roman", serif;
+			line-height: 1.6;
+			color: var(--ink);
+			margin: 0;
+			min-height: 100vh;
+			background:
+				radial-gradient(circle at top left, rgba(15, 118, 110, 0.16), transparent 28%),
+				linear-gradient(135deg, #f7f1e8 0%, #efe4d3 52%, #e7dcc8 100%);
+		}
+
+		body::before {
+			content: "";
+			position: fixed;
+			inset: 0;
+			background-image:
+				linear-gradient(rgba(23, 33, 43, 0.03) 1px, transparent 1px),
+				linear-gradient(90deg, rgba(23, 33, 43, 0.03) 1px, transparent 1px);
+			background-size: 36px 36px;
+			pointer-events: none;
+		}
+
+		main {
+			position: relative;
+			max-width: 1200px;
+			margin: 0 auto;
+			padding: 48px 24px 64px;
+		}
+
+		header {
+			margin-bottom: 48px;
+		}
+
+		.eyebrow {
+			display: inline-flex;
+			align-items: center;
+			gap: 10px;
+			padding: 8px 14px;
+			border-radius: 999px;
+			background: rgba(15, 118, 110, 0.1);
+			color: var(--accent-dark);
+			font-size: 0.88rem;
+			letter-spacing: 0.08em;
+			text-transform: uppercase;
+		}
+
+		h1 {
+			margin: 22px 0 12px;
+			font-size: clamp(2.6rem, 5vw, 4.2rem);
+			line-height: 0.95;
+			letter-spacing: -0.05em;
+			font-weight: 700;
+		}
+
+		.subtitle {
+			max-width: 50rem;
+			font-size: 1.08rem;
+			color: var(--muted);
+			margin: 0 0 32px;
+		}
+
+		.actions {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 14px;
+			margin-bottom: 36px;
+		}
+
+		.btn {
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			padding: 14px 22px;
+			border-radius: 999px;
+			text-decoration: none;
+			font-size: 0.98rem;
+			font-weight: 700;
+			letter-spacing: 0.01em;
+			transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+			cursor: pointer;
+			border: none;
+		}
+
+		.btn-primary {
+			background: var(--accent);
+			color: #fff;
+			box-shadow: 0 14px 30px rgba(15, 118, 110, 0.25);
+		}
+
+		.btn-secondary {
+			background: rgba(255, 255, 255, 0.72);
+			color: var(--ink);
+			border: 1px solid var(--line);
+		}
+
+		.btn:hover {
+			transform: translateY(-2px);
+		}
+
+		.btn-primary:hover {
+			background: var(--accent-dark);
+		}
+
+		.btn-secondary:hover {
+			background: rgba(255, 255, 255, 0.95);
+		}
+
+		.section {
+			margin-bottom: 56px;
+		}
+
+		.section h2 {
+			font-size: 1.8rem;
+			margin: 0 0 28px;
+			letter-spacing: -0.02em;
+		}
+
+		.panel {
+			background: var(--paper);
+			backdrop-filter: blur(8px);
+			border: 1px solid var(--line);
+			border-radius: 28px;
+			box-shadow: var(--shadow);
+		}
+
+		.feature-grid {
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+			gap: 20px;
+		}
+
+		.feature-card {
+			padding: 28px;
+			background: var(--paper);
+			backdrop-filter: blur(8px);
+			border: 1px solid var(--line);
+			border-radius: 24px;
+			box-shadow: 0 10px 30px rgba(23, 33, 43, 0.08);
+			transition: transform 0.2s ease, box-shadow 0.2s ease;
+			text-decoration: none;
+			color: inherit;
+			display: flex;
+			flex-direction: column;
+		}
+
+		.feature-card:hover {
+			transform: translateY(-4px);
+			box-shadow: 0 16px 40px rgba(23, 33, 43, 0.12);
+		}
+
+		.feature-icon {
+			font-size: 2.4rem;
+			margin-bottom: 14px;
+		}
+
+		.feature-card h3 {
+			margin: 0 0 10px;
+			font-size: 1.2rem;
+		}
+
+		.feature-card p {
+			margin: 0 0 16px;
+			color: var(--muted);
+			font-size: 0.95rem;
+			flex-grow: 1;
+		}
+
+		.status-badge {
+			display: inline-flex;
+			align-items: center;
+			gap: 6px;
+			padding: 6px 12px;
+			border-radius: 999px;
+			background: rgba(5, 150, 105, 0.1);
+			color: var(--success);
+			font-size: 0.85rem;
+			font-weight: 600;
+		}
+
+		.endpoint-grid {
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+			gap: 16px;
+		}
+
+		.endpoint-card {
+			padding: 20px;
+			background: rgba(255, 255, 255, 0.5);
+			border: 1px solid var(--line);
+			border-radius: 18px;
+			font-family: "Monaco", "Courier New", monospace;
+			font-size: 0.9rem;
+		}
+
+		.endpoint-path {
+			color: var(--accent);
+			font-weight: 600;
+			word-break: break-all;
+		}
+
+		.endpoint-desc {
+			color: var(--muted);
+			font-size: 0.85rem;
+			margin-top: 6px;
+			font-family: Georgia, serif;
+		}
+
+		.status-indicator {
+			display: inline-block;
+			width: 8px;
+			height: 8px;
+			border-radius: 50%;
+			background: var(--success);
+			margin-right: 6px;
+		}
+
+		footer {
+			margin-top: 48px;
+			padding-top: 24px;
+			border-top: 1px solid var(--line);
+			text-align: center;
+			color: var(--muted);
+			font-size: 0.9rem;
+		}
+
+		@media (max-width: 920px) {
+			main {
+				padding: 28px 16px 40px;
+			}
+
+			h1 {
+				font-size: 2.2rem;
+			}
+
+			.feature-grid {
+				grid-template-columns: 1fr;
+			}
+		}
+
+		@media (max-width: 560px) {
+			h1 {
+				font-size: 1.8rem;
+			}
+
+			.subtitle {
+				font-size: 1rem;
+			}
+
+			.section h2 {
+				font-size: 1.4rem;
+			}
+
+			.feature-card {
+				padding: 20px;
+			}
+		}
+	</style>
+</head>
+
+<body>
+	<main>
+		<!-- Header Section -->
+		<header>
+			<div class="eyebrow">
+				<span class="status-indicator"></span>
+				Server Online
+			</div>
+			<h1>Webserver Dashboard</h1>
+			<p class="subtitle">A capable HTTP/1.1 web server with support for static file serving, CGI execution, file uploads, and interactive applications.</p>
+			
+			<div class="actions">
+				<a href="/whiteboard/" class="btn btn-primary">✎ Open Whiteboard</a>
+				<a href="/api/boards" class="btn btn-secondary">📊 API Reference</a>
+			</div>
+		</header>
+
+		<!-- Features Section -->
+		<section class="section">
+			<h2>Core Features</h2>
+			<div class="feature-grid">
+				<a href="/whiteboard/" class="feature-card">
+					<div class="feature-icon">✎</div>
+					<h3>Whiteboard</h3>
+					<p>Interactive sketch, annotate, and visualize ideas. Draw with shapes, text, connectors, and freehand strokes.</p>
+					<div class="status-badge">
+						<span class="status-indicator"></span>
+						Active
+					</div>
+				</a>
+
+				<div class="feature-card">
+					<div class="feature-icon">📁</div>
+					<h3>Static Files</h3>
+					<p>Efficiently serve static content from the web root. Supports directory listing and custom index files.</p>
+					<div class="status-badge">
+						<span class="status-indicator"></span>
+						Available
+					</div>
+				</div>
+
+				<div class="feature-card">
+					<div class="feature-icon">⚙️</div>
+					<h3>CGI Execution</h3>
+					<p>Execute PHP, Python, and custom scripts. Dynamic content generation via standard CGI interface.</p>
+					<div class="status-badge">
+						<span class="status-indicator"></span>
+						Configured
+					</div>
+				</div>
+
+				<div class="feature-card">
+					<div class="feature-icon">📤</div>
+					<h3>File Uploads</h3>
+					<p>Accept multipart file uploads. Manage uploaded content with DELETE support for resource cleanup.</p>
+					<div class="status-badge">
+						<span class="status-indicator"></span>
+						Active
+					</div>
+				</div>
+
+				<div class="feature-card">
+					<div class="feature-icon">🔒</div>
+					<h3>SSL/TLS Support</h3>
+					<p>Secure connections with TLS encryption. Configurable certificate paths for HTTPS endpoints.</p>
+					<div class="status-badge">
+						<span class="status-indicator"></span>
+						Available
+					</div>
+				</div>
+
+				<div class="feature-card">
+					<div class="feature-icon">⚖️</div>
+					<h3>HTTP Protocol</h3>
+					<p>Full HTTP/1.0 and HTTP/1.1 support. Proper status codes, headers, error handling, and request methods.</p>
+					<div class="status-badge">
+						<span class="status-indicator"></span>
+						Compliant
+					</div>
+				</div>
+			</div>
+		</section>
+
+		<!-- Endpoints Section -->
+		<section class="section">
+			<h2>Available Endpoints</h2>
+			<div class="endpoint-grid">
+				<div class="endpoint-card">
+					<div class="endpoint-path">/whiteboard/</div>
+					<div class="endpoint-desc">Interactive drawing application</div>
+				</div>
+				<div class="endpoint-card">
+					<div class="endpoint-path">/api/boards</div>
+					<div class="endpoint-desc">Whiteboard state persistence API</div>
+				</div>
+				<div class="endpoint-card">
+					<div class="endpoint-path">/cgi-bin/</div>
+					<div class="endpoint-desc">CGI script execution (PHP, Python)</div>
+				</div>
+				<div class="endpoint-card">
+					<div class="endpoint-path">/uploads/</div>
+					<div class="endpoint-desc">User-uploaded files and content</div>
+				</div>
+				<div class="endpoint-card">
+					<div class="endpoint-path">/files/</div>
+					<div class="endpoint-desc">Static file directory</div>
+				</div>
+				<div class="endpoint-card">
+					<div class="endpoint-path">/* (ANY)</div>
+					<div class="endpoint-desc">Static content from root directory</div>
+				</div>
+			</div>
+		</section>
+
+		<!-- HTTP Methods Section -->
+		<section class="section">
+			<h2>Supported Methods</h2>
+			<div class="feature-grid" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));">
+				<div style="padding: 20px; background: var(--paper); border: 1px solid var(--line); border-radius: 18px;">
+					<div style="color: var(--accent); font-weight: 700; font-family: monospace; margin-bottom: 8px;">GET</div>
+					<div style="font-size: 0.9rem; color: var(--muted);">Retrieve resources</div>
+				</div>
+				<div style="padding: 20px; background: var(--paper); border: 1px solid var(--line); border-radius: 18px;">
+					<div style="color: var(--accent); font-weight: 700; font-family: monospace; margin-bottom: 8px;">HEAD</div>
+					<div style="font-size: 0.9rem; color: var(--muted);">Headers only</div>
+				</div>
+				<div style="padding: 20px; background: var(--paper); border: 1px solid var(--line); border-radius: 18px;">
+					<div style="color: var(--accent); font-weight: 700; font-family: monospace; margin-bottom: 8px;">POST</div>
+					<div style="font-size: 0.9rem; color: var(--muted);">Submit data & uploads</div>
+				</div>
+				<div style="padding: 20px; background: var(--paper); border: 1px solid var(--line); border-radius: 18px;">
+					<div style="color: var(--accent); font-weight: 700; font-family: monospace; margin-bottom: 8px;">DELETE</div>
+					<div style="font-size: 0.9rem; color: var(--muted);">Remove resources</div>
+				</div>
+			</div>
+		</section>
+
+		<footer>
+			<p>C++11 HTTP/1.0 & HTTP/1.1 web server • Non-blocking I/O with poll() event loop</p>
+		</footer>
+	</main>
+</body>
+
+</html>

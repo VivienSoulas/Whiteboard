@@ -431,7 +431,7 @@ void ConnectionManager::pollConnections()
 				}
 				else if (r.state == HttpParser::ERROR)
 				{
-					HttpResponse err = HttpResponseFactory::buildError(pit->second.getRequest(), r.statusCode, r.shouldClose);
+					HttpResponse err = HttpResponseFactory::buildError(pit->second.getRequest(), nullptr, r.statusCode, r.shouldClose);
 					cit->second->setWriteBuffer(err.serialize());
 					cit->second->setState(WRITTING);
 					if (r.shouldClose)
@@ -547,7 +547,7 @@ void ConnectionManager::pollConnections()
 				}
 				else if (r.state == HttpParser::ERROR)
 				{
-					HttpResponse err = HttpResponseFactory::buildError(pit->second.getRequest(), r.statusCode, r.shouldClose);
+					HttpResponse err = HttpResponseFactory::buildError(pit->second.getRequest(), nullptr, r.statusCode, r.shouldClose);
 					tcit->second->setWriteBuffer(err.serialize());
 					tcit->second->setState(WRITTING);
 					if (r.shouldClose)

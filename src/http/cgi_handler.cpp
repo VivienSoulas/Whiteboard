@@ -33,26 +33,26 @@ namespace cgi_handler
 
         std::string file_path = path_utils::resolveFilePath(root, effective_request_path);
         if (file_path.empty())
-            return HttpResponseFactory::buildError(req, HttpStatus::NOT_FOUND, true).serialize();
+            return HttpResponseFactory::buildError(req, &server, HttpStatus::NOT_FOUND, true).serialize();
 
         file_path = path_utils::normalizeAndMakeAbsolute("", file_path);
 
         if (access(file_path.c_str(), R_OK) != 0)
         {
             DEBUG_LOG("403 Forbidden: access(" << file_path << ", R_OK) failed.");
-            return HttpResponseFactory::buildError(req, HttpStatus::FORBIDDEN, true).serialize();
+            return HttpResponseFactory::buildError(req, &server, HttpStatus::FORBIDDEN, true).serialize();
         }
         DEBUG_LOG("Access R_OK check passed for " << file_path);
 
         int pipe_in[2];
         int pipe_out[2];
         if (pipe(pipe_in) < 0)
-            return HttpResponseFactory::buildError(req, HttpStatus::INTERNAL_SERVER_ERROR, true).serialize();
+            return HttpResponseFactory::buildError(req, &server, HttpStatus::INTERNAL_SERVER_ERROR, true).serialize();
         if (pipe(pipe_out) < 0)
         {
             close(pipe_in[0]);
             close(pipe_in[1]);
-            return HttpResponseFactory::buildError(req, HttpStatus::INTERNAL_SERVER_ERROR, true).serialize();
+            return HttpResponseFactory::buildError(req, &server, HttpStatus::INTERNAL_SERVER_ERROR, true).serialize();
         }
 
         // CGI timeout is now handled by the parent's poll loop (POLL_TIMEOUT);
@@ -63,7 +63,7 @@ namespace cgi_handler
             // Both pipes are properly closed on fork() failure
             close(pipe_in[0]); close(pipe_in[1]);
             close(pipe_out[0]); close(pipe_out[1]);
-            return HttpResponseFactory::buildError(req, HttpStatus::INTERNAL_SERVER_ERROR, true).serialize();
+            return HttpResponseFactory::buildError(req, &server, HttpStatus::INTERNAL_SERVER_ERROR, true).serialize();
         }
 
         if (pid == 0) // Child
@@ -270,7 +270,7 @@ namespace cgi_handler
             if (WIFEXITED(status) && WEXITSTATUS(status) != 0) {
                 DEBUG_LOG("Child exited with non-zero status: " << WEXITSTATUS(status));
                 if (cgi_output.empty())
-                    return HttpResponseFactory::buildError(req, HttpStatus::INTERNAL_SERVER_ERROR, true).serialize();
+                    return HttpResponseFactory::buildError(req, &server, HttpStatus::INTERNAL_SERVER_ERROR, true).serialize();
             }
 
             size_t header_end = cgi_output.find("\r\n\r\n");

@@ -15,7 +15,7 @@
 
 namespace static_file_handler
 {
-	std::string serve(const ServerConfig &server, const LocationConfig &location, const std::string &path, bool head_only)
+	std::string serve(const ServerConfig &server, const LocationConfig &location, const std::string &path, bool head_only, int* out_status)
 	{
 		std::string norm_path = path;
 		std::string root = location.root.empty() ? server.root : location.root;
@@ -113,6 +113,13 @@ namespace static_file_handler
 		std::string root_abs = path_utils::normalizeAndMakeAbsolute("", root);
 		if (!path_utils::pathUnderRoot(file_path, root_abs)) {
 			DEBUG_LOG("Path escape attempt blocked: " << file_path << " (not under root " << root_abs << ")");
+			return "";
+		}
+
+		// Check read permission before attempting to open file
+		if (access(file_path.c_str(), R_OK) != 0) {
+			DEBUG_LOG("Permission denied reading file: " << file_path);
+			if (out_status) *out_status = 403;
 			return "";
 		}
 

@@ -126,14 +126,14 @@ std::string Webserv::handleRequest(const HttpRequest &req, const std::string &li
 	const ServerConfig *server = _router.selectServer(host, listen_addr, listen_port);
 	if (!server)
 	{
-		HttpResponse res = HttpResponseFactory::buildError(req, HttpStatus::INTERNAL_SERVER_ERROR, true);
+		HttpResponse res = HttpResponseFactory::buildError(req, nullptr, HttpStatus::INTERNAL_SERVER_ERROR, true);
 		return res.serialize();
 	}
 	DEBUG_LOG("Routing request: host [" << host << "] matched server [" << server->server_name << "]");
 
 	if (req.method == UNKNOWN)
 	{
-		HttpResponse res = HttpResponseFactory::buildError(req, HttpStatus::METHOD_NOT_ALLOWED, true);
+		HttpResponse res = HttpResponseFactory::buildError(req, server, HttpStatus::METHOD_NOT_ALLOWED, true);
 		return res.serialize();
 	}
 	HttpMethod method = req.method;
@@ -147,7 +147,7 @@ std::string Webserv::handleRequest(const HttpRequest &req, const std::string &li
 	const LocationConfig *location = _router.matchLocation(*server, req.path);
 	if (!location)
 	{
-		HttpResponse res = HttpResponseFactory::buildError(req, HttpStatus::NOT_FOUND, true);
+		HttpResponse res = HttpResponseFactory::buildError(req, server, HttpStatus::NOT_FOUND, true);
 		return res.serialize();
 	}
 
@@ -185,7 +185,7 @@ std::string Webserv::handleRequest(const HttpRequest &req, const std::string &li
 		if (cgi_file_path.empty() || access(cgi_file_path.c_str(), F_OK) != 0)
 		{
 			DEBUG_LOG("Final response: 404 Not Found (CGI file not found)");
-			HttpResponse res = HttpResponseFactory::buildError(req, HttpStatus::NOT_FOUND, true);
+			HttpResponse res = HttpResponseFactory::buildError(req, server, HttpStatus::NOT_FOUND, true);
 			return res.serialize();
 		}
 		
@@ -207,7 +207,7 @@ std::string Webserv::handleRequest(const HttpRequest &req, const std::string &li
                                                             location->root.empty() ? req.path : req.path.substr(location->path.length() == 1 ? 0 : location->path.length()));
 		if (file_path.empty())
 		{
-			HttpResponse res = HttpResponseFactory::buildError(req, HttpStatus::NOT_FOUND, true);
+			HttpResponse res = HttpResponseFactory::buildError(req, server, HttpStatus::NOT_FOUND, true);
 			return res.serialize();
 		}
 		file_path = path_utils::normalizeAndMakeAbsolute("", file_path);
@@ -224,13 +224,13 @@ std::string Webserv::handleRequest(const HttpRequest &req, const std::string &li
 			else
 			{
 				DEBUG_LOG("Final response: 403 Forbidden (DELETE failed: " << strerror(errno) << ")");
-				HttpResponse res = HttpResponseFactory::buildError(req, HttpStatus::FORBIDDEN, true);
+				HttpResponse res = HttpResponseFactory::buildError(req, server, HttpStatus::FORBIDDEN, true);
 				return res.serialize();
 			}
 		}
 		else
 		{
-			HttpResponse res = HttpResponseFactory::buildError(req, HttpStatus::NOT_FOUND, true);
+			HttpResponse res = HttpResponseFactory::buildError(req, server, HttpStatus::NOT_FOUND, true);
 			return res.serialize();
 		}
 	}
@@ -239,10 +239,17 @@ std::string Webserv::handleRequest(const HttpRequest &req, const std::string &li
 	if (req.method == GET || req.method == HEAD)
 	{
 		bool head_only = (req.method == HEAD);
-		std::string static_response = static_file_handler::serve(*server, *location, req.path, head_only);
+		int file_error = 0;
+		std::string static_response = static_file_handler::serve(*server, *location, req.path, head_only, &file_error);
 		if (!static_response.empty()) {
 			DEBUG_LOG("Final response: served static file/listing");
 			return static_response;
+		}
+		// Distinguish permission errors from not-found errors
+		if (file_error == 403) {
+			DEBUG_LOG("Final response: 403 Forbidden (permission denied on static file)");
+			HttpResponse res = HttpResponseFactory::buildError(req, server, HttpStatus::FORBIDDEN, true);
+			return res.serialize();
 		}
 		if (head_only)
 		{
@@ -261,6 +268,6 @@ std::string Webserv::handleRequest(const HttpRequest &req, const std::string &li
 	}
 	
 	DEBUG_LOG("Final response: 404 Not Found (no handler matched)");
-	HttpResponse res = HttpResponseFactory::buildError(req, HttpStatus::NOT_FOUND, true); 
+	HttpResponse res = HttpResponseFactory::buildError(req, server, HttpStatus::NOT_FOUND, true); 
 	return res.serialize();
 }

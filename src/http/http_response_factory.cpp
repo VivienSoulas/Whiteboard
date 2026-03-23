@@ -1,7 +1,9 @@
 #include "http/http_response_factory.hpp"
 #include "http/http_status.hpp"
 #include <sstream>
+#include <fstream>
 #include "logger.hpp"
+#include "path/path_utils.hpp"
 
 // -------------------------------- Public API --------------------------------
 
@@ -10,7 +12,7 @@
  *
  * Sets status, a simple HTML body, Content-Type, and applies connection policy.
  */
-HttpResponse HttpResponseFactory::buildError(const HttpRequest &req, int statusCode, bool close)
+HttpResponse HttpResponseFactory::buildError(const HttpRequest &req, const ServerConfig *server, int statusCode, bool close)
 {
 	DEBUG_LOG("Building error response: " << statusCode << " (request path: " << req.path << ")");
 	HttpResponse res;
@@ -18,7 +20,39 @@ HttpResponse HttpResponseFactory::buildError(const HttpRequest &req, int statusC
 
 	res.setStatus(statusCode);
 	res.setContentType("text/html; charset=utf-8");
-	res.setBody(makeDefaultErrorBody(statusCode, res.getReasonPhrase()));
+	
+	// Try to load custom error page if configured
+	std::string body = makeDefaultErrorBody(statusCode, res.getReasonPhrase());
+	if (server && !server->error_pages.empty())
+	{
+		std::map<int, std::string>::const_iterator it = server->error_pages.find(statusCode);
+		if (it != server->error_pages.end())
+		{
+			// Try to load the configured error page
+			std::string error_page_path = it->second;
+			std::string full_error_page_path = path_utils::resolveFilePath(server->root, error_page_path);
+			if (full_error_page_path.empty())
+			{
+				DEBUG_LOG("Failed to resolve error page path: " << error_page_path);
+			}
+			else
+			{
+				std::ifstream error_file(full_error_page_path.c_str(), std::ios::binary);
+				if (error_file.good())
+				{
+					body.assign((std::istreambuf_iterator<char>(error_file)), std::istreambuf_iterator<char>());
+					error_file.close();
+					DEBUG_LOG("Loaded custom error page: " << full_error_page_path);
+				}
+				else
+				{
+					DEBUG_LOG("Failed to load error page: " << full_error_page_path << " (using default)");
+				}
+			}
+		}
+	}
+	
+	res.setBody(body);
 	return res;
 }
 

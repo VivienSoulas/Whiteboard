@@ -8,7 +8,7 @@
 
 namespace static_file_handler
 {
-	std::string serve(const ServerConfig &server, const LocationConfig &location, const std::string &path, bool head_only);
+	std::string serve(const ServerConfig &server, const LocationConfig &location, const std::string &path, bool head_only, int* out_status = nullptr);
 }
 
 #endif // STATIC_FILE_HANDLER_HPP

@@ -20,7 +20,7 @@ namespace upload_handler
 		if (boundary.empty())
 		{
 			DEBUG_LOG("Upload failed: Missing multipart boundary in headers");
-			HttpResponse res = HttpResponseFactory::buildError(req, HttpStatus::BAD_REQUEST, true);
+		HttpResponse res = HttpResponseFactory::buildError(req, nullptr, HttpStatus::BAD_REQUEST, true);
 			return res.serialize();
 		}
 		DEBUG_LOG("Starting multipart upload processing (boundary: " << boundary << ")");
@@ -118,7 +118,7 @@ namespace upload_handler
 		if (saved_names.empty())
 		{
 			DEBUG_LOG("No files were successfully saved from the upload");
-			HttpResponse res = HttpResponseFactory::buildError(req, HttpStatus::BAD_REQUEST, true);
+		HttpResponse res = HttpResponseFactory::buildError(req, nullptr, HttpStatus::BAD_REQUEST, true);
 			return res.serialize();
 		}
 		DEBUG_LOG("Upload successful: " << saved_names.size() << " files saved");

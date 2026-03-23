@@ -3,13 +3,14 @@
 
 #include "http/http_response.hpp"
 #include "http/http_request.hpp"
+#include "config/server/server_config.hpp"
 #include <string>
 #include <vector>
 
 class HttpResponseFactory
 {
 public:
-	static HttpResponse buildError(const HttpRequest &req, int statusCode, bool close);
+	static HttpResponse buildError(const HttpRequest &req, const ServerConfig *server, int statusCode, bool close);
 	static HttpResponse buildOk(const HttpRequest &req, const std::string &body,
 								const std::string &contentType, bool close);
 	static HttpResponse buildMethodNotAllowed(const HttpRequest &req,	
